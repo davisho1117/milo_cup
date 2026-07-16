@@ -1043,7 +1043,8 @@
         window.triggerAuthModal = function(actionType) {
             currentAuthAction = actionType;
             const desc = document.getElementById('auth-modal-desc');
-            if (actionType === 'create') desc.innerText = "正在全新建立大會賽程表，此動作會覆蓋掉目前雲端上所有的對戰紀錄！";
+            if (actionType === 'login') desc.innerText = "請輸入主辦管理密碼以取得大會控制權限。";
+            else if (actionType === 'create') desc.innerText = "正在全新建立大會賽程表，此動作會覆蓋掉目前雲端上所有的對戰紀錄！";
             else if (actionType === 'delete') desc.innerText = "確定要完全清除並刪除此賽事嗎？此動作將永久抹除所有雲端數據且不可復原！";
             
             document.getElementById('auth-password').value = '';
@@ -1060,7 +1061,12 @@
             if (p === "milo") {
                 const action = currentAuthAction;
                 closeAuthModal();
-                if (action === 'create') executeGenerateTournament();
+                if (action === 'login') {
+                    window.userRole = 'admin'; 
+                    localStorage.setItem(`role_${appId}_${tournamentId}`, 'admin'); 
+                    renderApp();
+                }
+                else if (action === 'create') executeGenerateTournament();
                 else if (action === 'delete') executeResetTournament();
             } else { 
                 alert("驗證失敗：管理員密碼輸入錯誤！"); 
@@ -1398,7 +1404,7 @@
             if (isAdmin) document.getElementById('admin-controls').classList.remove('hidden'); else document.getElementById('admin-controls').classList.add('hidden');
         }
 
-        window.loginAsAdmin = function() { window.userRole = 'admin'; localStorage.setItem(`role_${appId}_${tournamentId}`, 'admin'); renderApp(); }
+        window.loginAsAdmin = function() { triggerAuthModal('login'); }
         
         window.loginAsPlayer = function() { 
             const name = document.getElementById('player-select').value; 
