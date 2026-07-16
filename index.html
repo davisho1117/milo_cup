@@ -1077,6 +1077,10 @@
             } else if (format === 'knockout') { knockoutData = generateSingleElimination(players); } 
 
             const newState = { players: players, format: format, numGroups: format==='group'?numGroups:0, groups: groupsData, knockout: knockoutData };
+            
+            // Auto-advance Byes ("輪空") on tournament generation
+            checkAndProcessByes(newState);
+            
             setDoc(window.docRef, newState).then(() => { showModal("🚀 大會新賽程已成功發布並同步！"); }).catch((e) => { showModal("發布失敗: " + e.message); });
         }
 
