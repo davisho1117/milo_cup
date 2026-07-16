@@ -913,7 +913,6 @@
         /* 🚀 戰績傳輸 🚀 */
         function advanceWinner(s, colIdx, mIdx, winner, loser) {
             const targetMatch = s.knockout[colIdx].matches[mIdx];
-            if (!winner) return;
             
             if (targetMatch.nextMatchId && colIdx + 1 < s.knockout.length) {
                 let nextCol = s.knockout[colIdx + 1];
@@ -922,11 +921,21 @@
                     const predIdx = s.knockout[colIdx].matches.findIndex(m => m.id === targetMatch.id);
                     if (predIdx !== -1) {
                         if (predIdx % 2 === 0) { 
-                            nextMatch.p1 = winner; 
-                            nextMatch.p1Seed = `勝 ${targetMatch.title}`;
+                            nextMatch.p1 = winner || ''; 
+                            nextMatch.p1Seed = winner ? `勝 ${targetMatch.title}` : `勝 ${targetMatch.title}`;
                         } else { 
-                            nextMatch.p2 = winner; 
-                            nextMatch.p2Seed = `勝 ${targetMatch.title}`;
+                            nextMatch.p2 = winner || ''; 
+                            nextMatch.p2Seed = winner ? `勝 ${targetMatch.title}` : `勝 ${targetMatch.title}`;
+                        }
+                        
+                        // Recursive clearing if score changes to tie or unplayed
+                        if (!winner) {
+                            const nextMatchIdx = nextCol.matches.findIndex(m => m.id === nextMatch.id);
+                            if (nextMatchIdx !== -1) {
+                                nextMatch.s1 = 0;
+                                nextMatch.s2 = 0;
+                                advanceWinner(s, colIdx + 1, nextMatchIdx, '', '');
+                            }
                         }
                     }
                 }
@@ -939,11 +948,15 @@
                     const predIdx = s.knockout[colIdx].matches.findIndex(m => m.id === targetMatch.id);
                     if (predIdx !== -1) {
                         if (predIdx % 2 === 0) { 
-                            bronzeMatch.p1 = loser; 
-                            bronzeMatch.p1Seed = `敗 ${targetMatch.title}`;
+                            bronzeMatch.p1 = loser || ''; 
+                            bronzeMatch.p1Seed = loser ? `敗 ${targetMatch.title}` : `敗 ${targetMatch.title}`;
                         } else { 
-                            bronzeMatch.p2 = loser; 
-                            bronzeMatch.p2Seed = `敗 ${targetMatch.title}`;
+                            bronzeMatch.p2 = loser || ''; 
+                            bronzeMatch.p2Seed = loser ? `敗 ${targetMatch.title}` : `敗 ${targetMatch.title}`;
+                        }
+                        if (!loser) {
+                            bronzeMatch.s1 = 0;
+                            bronzeMatch.s2 = 0;
                         }
                     }
                 }
@@ -1336,10 +1349,8 @@
                 if (m.s1 > m.s2) { winner = m.p1; loser = m.p2; }
                 else if (m.s2 > m.s1) { winner = m.p2; loser = m.p1; }
                 
-                if (winner !== '') {
-                    advanceWinner(s, idx1, idx2, winner, loser);
-                    checkAndProcessByes(s);
-                }
+                advanceWinner(s, idx1, idx2, winner, loser);
+                checkAndProcessByes(s);
             }
             else if (type === 'g_p') {
                 if(key=='scoreDiff') s.groups[idx1].players[idx2][key] += val;
