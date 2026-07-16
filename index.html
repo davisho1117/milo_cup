@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f4ecd2">
+    <title>BEYBLADE X Milo Cup - 1930s 版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 橡皮管動畫 經典黃金配色 */
+            --ch-bg: #f4ecd2;      /* 舊黃色羊皮紙底色 */
+            --ch-black: #2b2b2a;   /* 濃墨汁黑 */
+            --ch-red: #cc3333;     /* 復古卡通紅 */
+            --ch-blue: #3b6fa6;    /* 復古牛仔藍 */
+            --ch-yellow: #f2be42;  /* 奶油金黃 */
+            --ch-white: #fffdf0;   /* 賽璐璐片白 */
+            
+            --primary: var(--ch-red);
+            --gold: var(--ch-yellow);
+            --panel: var(--ch-white);
+            --text: var(--ch-black);
+            --border: var(--ch-black);
+            
+            --sb-p1-color: var(--ch-blue);
+            --sb-p2-color: var(--ch-red);
+            --sb-bg-color: #ede2c4;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Fredoka One', 'Bowlby One SC', 'Segoe UI', cursive, sans-serif;
+        }
+
+        /* 復古老電影膠卷 噪點特效 */
+        body {
+            background-color: var(--ch-bg);
+            color: var(--ch-black);
+            margin: 0; padding: 0;
+            min-height: 100dvh;
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* 厚重墨汁邊框與粗重陰影 */
+        .ch-box {
+            background: var(--ch-white);
+            border: 4px solid var(--ch-black);
+            border-radius: 16px;
+            box-shadow: 5px 5px 0px 0px var(--ch-black);
+        }
+
+        .ch-btn {
+            background: var(--ch-yellow);
+            color: var(--ch-black);
+            border: 3px solid var(--ch-black);
+            border-radius: 12px;
+            box-shadow: 3px 3px 0px 0px var(--ch-black);
+            font-weight: 900;
+            transition: all 0.1s;
+        }
+        .ch-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px 0px var(--ch-black);
+        }
+
+        /* 分頁按鈕樣式切換 */
+        .tab-btn {
+            padding: 8px 18px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .tab-active {
+            background-color: var(--ch-red) !important;
+            color: var(--ch-white) !important;
+        }
+        .tab-inactive {
+            background-color: var(--ch-white) !important;
+            color: var(--ch-black) !important;
+        }
+
+        /* 對戰組合外框 */
+        .match-row { 
+            background: #faf2d3; 
+            border: 2px solid var(--ch-black); 
+            border-radius: 10px; 
+            margin-bottom: 8px;
+        }
+        .score-box { 
+            display: inline-block; 
+            min-width: 32px; height: 32px; 
+            line-height: 28px; text-align: center; 
+            background: var(--ch-white); 
+            border: 2px solid var(--ch-black); 
+            border-radius: 6px; 
+            color: var(--ch-red); 
+            font-weight: 900;
+        }
+
+        .matchup { border: 3px solid var(--ch-black); border-radius: 12px; background: var(--ch-white); overflow: hidden; box-shadow: 3px 3px 0px 0px var(--ch-black); }
+        .matchup-title { text-align: center; padding: 4px; background: var(--ch-yellow); color: var(--ch-black); border-bottom: 3px solid var(--ch-black); font-size: 0.85rem; }
+        .matchup.gold { border-color: var(--ch-red); }
+        .matchup.gold .matchup-title { background: var(--ch-red); color: var(--ch-white); }
+
+        /* ================= ⚔️ 電子計分板 (響應式優化) ================= */
+        #scoreboard-screen { 
+            background-color: var(--sb-bg-color); 
+            height: calc(100dvh - 56px); 
+            width: 100%; 
+            overflow: hidden; 
+            flex-direction: column; 
+        }
+        .sb-settings-bar { 
+            background: var(--ch-yellow); 
+            border-bottom: 4px solid var(--ch-black); 
+            padding: 0 12px; 
+            height: 52px; 
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* 平板/桌面版與手機版的卡片容器 */
+        .sb-main-arena { 
+            display: flex;
+            flex-direction: column;
+            flex: 1; 
+            padding: 12px; 
+            gap: 12px; 
+            overflow: hidden; 
+            height: 100%;
+        }
+
+        /* 經典老卡通卡片風格 */
+        .sb-player-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: var(--ch-white);
+            border: 4px solid var(--ch-black);
+            border-radius: 20px;
+            padding: 12px;
+            box-shadow: 4px 4px 0px 0px var(--ch-black);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* 使用顏色區分選手邊界 */
+        .sb-player-card.p1-card {
+            border-color: var(--sb-p1-color);
+            box-shadow: 4px 4px 0px 0px var(--sb-p1-color);
+        }
+        .sb-player-card.p2-card {
+            border-color: var(--sb-p2-color);
+            box-shadow: 4px 4px 0px 0px var(--sb-p2-color);
+        }
+
+        /* 巨大比分按鈕 */
+        .sb-score-tap-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex: 1;
+            min-height: 80px;
+        }
+
+        .sb-score-display {
+            font-size: clamp(4.5rem, 12vh, 8.5rem);
+            font-weight: 900;
+            line-height: 1;
+            user-select: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .sb-score-display:active {
+            transform: scale(0.92);
+        }
+
+        /* 雙方選手卡片中的名字輸入框 */
+        .sb-name-input {
+            font-size: clamp(1.2rem, 3.5vh, 1.8rem);
+            font-weight: 900;
+            background: transparent;
+            border: none;
+            color: var(--ch-black);
+            border-bottom: 3px dashed var(--ch-black);
+            width: 100%;
+            text-align: center;
+            padding-bottom: 2px;
+        }
+
+        /* 網格功能按鈕 */
+        .sb-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+
+        .sb-action-btn {
+            background: var(--ch-white);
+            border: 3px solid var(--ch-black);
+            border-radius: 12px;
+            color: var(--ch-black);
+            padding: 8px 4px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px 0px var(--ch-black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+        .sb-action-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px 0px var(--ch-black);
+        }
+
+        .sb-action-btn.btn-dash { background: var(--ch-yellow); }
+
+        /* 快速加減微調按鈕 */
+        .sb-quick-adjust-btn {
+            width: clamp(44px, 8vh, 60px);
+            height: clamp(44px, 8vh, 60px);
+            border-radius: 50%;
+            border: 3px solid var(--ch-black);
+            font-size: 1.8rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px 0px var(--ch-black);
+            transition: all 0.1s;
+            background: white;
+            user-select: none;
+        }
+        .sb-quick-adjust-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px 0px var(--ch-black);
+        }
+
+        /* 勝利大彈窗 */
+        .sb-victory-screen { position: fixed; inset: 0; background: rgba(244, 236, 210, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 500; }
+        .sb-victory-screen.active { opacity: 1; pointer-events: auto; }
+        .sb-winner-banner { font-size: clamp(3rem, 10vw, 6rem); font-weight: 900; color: var(--ch-red); -webkit-text-stroke: 3px var(--ch-black); text-shadow: 5px 5px 0px var(--ch-black); }
+
+        table { width: 100%; border-collapse: collapse; background: var(--ch-white); }
+        th, td { border: 3px solid var(--ch-black); padding: 8px; text-align: center; color: var(--ch-black); }
+        th { background: var(--ch-yellow); font-weight: 900; }
+
+        /* 🖥️ 平板與桌面寬螢幕排版自適應 (左右對稱大佈局) */
+        @media (min-width: 768px) {
+            .sb-main-arena {
+                flex-direction: row;
+                padding: 24px;
+                gap: 24px;
+            }
+            .sb-player-card {
+                padding: 24px;
+            }
+            .sb-btn-grid {
+                gap: 10px;
+            }
+            .sb-action-btn {
+                padding: 12px 6px;
+            }
+        }
+
+        /* 復古卡通動畫特效 */
+        @keyframes cartoon-wobble {
+            0%, 100% { transform: rotate(-1.5deg); }
+            50% { transform: rotate(1.5deg) scale(1.02); }
+        }
+        
+        .animate-wobble {
+            display: inline-block;
+            animation: cartoon-wobble 5s ease-in-out infinite;
+        }
+
+        /* 呼吸動畫 */
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .pulse-active {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+        
+        /* 比分變更閃爍動畫 */
+        @keyframes flash-green {
+            0%, 100% { background-color: var(--ch-white); }
+            50% { background-color: rgba(34, 197, 94, 0.2); }
+        }
+        .score-changed {
+            animation: flash-green 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+
+    <div class="top-bar w-full flex justify-between items-center px-4 py-2 border-b-4 border-black bg-[#faf2d3]">
+        <div class="flex items-center gap-3">
+            <div class="font-black text-black text-lg uppercase tracking-wider hidden sm:block">BEYBLADE X</div>
+            <div id="nav-tabs" class="hidden flex gap-2">
+                <button id="tab-btn-main" class="ch-btn tab-btn tab-active">🏆 賽程</button>
+                <button id="tab-btn-score" class="ch-btn tab-btn tab-inactive hidden">⚔️ 計分</button>
+            </div>
+        </div>
+
+        <div class="flex gap-2 items-center">
+            <button class="ch-btn px-3 py-1.5 text-sm bg-white" onclick="openSettingsModal()" id="settings-btn" title="設定 Firebase 伺服器">⚙️ 設定</button>
+            <button class="ch-btn px-4 py-1.5 text-sm" onclick="toggleFullScreen()" id="fs-btn">🔲 全螢幕</button>
+            <div id="user-info" class="text-sm hidden items-center">
+                <span id="role-badge" class="px-3 py-1 border-2 border-black rounded-lg text-xs font-black mr-2"></span>
+                <button onclick="logout()" class="text-gray-400 underline text-xs font-bold">切換</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏆 主賽程面板 (預設顯示) 🏆 -->
+    <div id="app-container" class="w-full flex-1 flex flex-col items-center pb-20 px-4 overflow-y-auto">
+        <div class="text-center my-6 w-full">
+            <h1 class="text-4xl md:text-5xl font-black uppercase text-[#cc3333] tracking-widest animate-wobble" style="-webkit-text-stroke: 2px #2b2b2a; text-shadow: 4px 4px 0px #2b2b2a;">BEYBLADE X Milo Cup</h1>
+            <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
+                <p id="system-status" class="text-gray-700 font-bold text-sm tracking-wide">連線中...</p>
+                <button id="share-btn" class="ch-btn px-2.5 py-0.5 text-xs bg-white text-black flex items-center gap-1 hidden pulse-active" onclick="copyShareLink()">
+                    🔗 分享賽程
+                </button>
+            </div>
+        </div>
+
+        <div id="loading-screen" class="w-full max-w-md p-8 text-center hidden"><p class="font-bold text-xl">⏳ 正在載入老舊賽事膠卷...</p></div>
+
+        <div id="login-screen" class="w-full max-w-md p-6 ch-box hidden mx-4 my-4">
+            <h2 class="text-2xl text-[#cc3333] font-black border-b-4 border-black pb-2 mb-6 text-center">請選擇您的身分</h2>
+            <div class="mb-8 text-center">
+                <h3 class="font-black mb-3 text-left text-black">👤 我是參賽選手</h3>
+                <select id="player-select" class="w-full p-3 rounded-xl border-3 border-black font-bold mb-4 bg-white text-black"></select>
+                <button onclick="loginAsPlayer()" class="w-full ch-btn p-3 text-lg">進入選手儀表板</button>
+            </div>
+            <div class="border-t-4 border-dashed border-black pt-6">
+                <button onclick="loginAsAdmin()" class="w-full ch-btn bg-stone-300 p-3 text-lg">👑 進入主辦控制台</button>
+            </div>
+        </div>
+
+        <div id="setup-screen" class="w-full max-w-2xl p-6 ch-box hidden mx-4 my-4">
+            <h2 class="text-2xl text-[#cc3333] font-black border-b-4 border-black pb-2 mb-6">⚙️ 建立新賽事</h2>
+            <div class="flex flex-col gap-2 mb-6">
+                <label class="text-black font-black">1. 請輸入參賽選手名單（一人一列）</label>
+                <textarea id="playerList" class="p-4 rounded-xl border-3 border-black h-40 font-bold bg-white text-black" placeholder="選手A&#10;選手B"></textarea>
+            </div>
+            <div class="flex flex-col gap-2 mb-6">
+                <label class="text-black font-black">2. 選擇大會賽制</label>
+                <select id="tournamentFormat" class="p-3 rounded-xl border-3 border-black font-bold bg-white" onchange="toggleGroupCount()">
+                    <option value="group">🔥 小組賽 + 淘汰賽</option>
+                    <option value="knockout">⚔️ 直接單淘汰賽 (自動配籤)</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-2 mb-6" id="groupCountContainer">
+                <label class="text-black font-black">3. 預賽要分成幾組？</label>
+                <select id="groupCount" class="p-3 rounded-xl border-3 border-black font-bold bg-white">
+                    <option value="2">2 組</option><option value="3">3 組</option><option value="4">4 組</option>
+                    <option value="5">5 組</option><option value="6">6 組</option><option value="7">7 組</option>
+                    <option value="8" selected>8 組</option>
+                </select>
+            </div>
+            <button onclick="triggerAuthModal('create')" class="w-full ch-btn bg-[#cc3333] text-white p-4 text-xl">🚀 產生並發布賽程</button>
+        </div>
+
+        <div id="main-board-screen" class="w-full max-w-6xl px-2 hidden">
+            <div id="player-dashboard" class="mb-8 ch-box border-[#cc3333] p-4 hidden bg-[#fffdf0]">
+                <div class="flex items-center gap-3 mb-2"><span class="text-2xl">🔥</span><h3 class="text-xl font-black text-[#cc3333]">您的下一場賽事</h3></div>
+                <div id="next-match-content" class="bg-[#faf2d3] rounded-xl p-4 text-center border-2 border-black font-bold text-black"></div>
+            </div>
+            
+            <div id="admin-group-actions" class="w-full text-center mb-8 hidden">
+                <button onclick="advanceGroupWinners()" class="ch-btn bg-gradient-to-r from-amber-500 to-yellow-400 px-8 py-3.5 text-xl font-black">🚀 預賽結束：一鍵生成決賽名單</button>
+                <p class="text-xs text-red-700 font-bold mt-2">💡 小提示：若出現平手，請現場進行【1分突死賽】，並直接於下方表格名次欄修改數字後再行結算！</p>
+            </div>
+
+            <div id="groups-container" class="flex flex-wrap gap-6 justify-center mb-10"></div>
+            
+            <div id="knockout-section" class="ch-box p-6 w-full hidden bg-[#fffdf0] mb-12">
+                <h2 id="knockout-title" class="text-2xl text-[#cc3333] border-b-4 border-black pb-3 mb-6 text-center font-black">🏆 決賽階段</h2>
+                <div id="knockout-container" class="grid gap-6"></div>
+            </div>
+            
+            <div id="admin-controls" class="mt-12 text-center hidden">
+                <button onclick="triggerAuthModal('delete')" class="border-3 border-black bg-red-100 text-red-700 font-black px-6 py-2 rounded-xl hover:bg-red-200 transition shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">⚠️ 刪除並重置整個賽事</button>
+            </div>
+        </div>
+    </div> 
+
+    <!-- ⚔️ 電子計分板螢幕 (預設完全隱藏，在 JS 中動態切換顯示) ⚔️ -->
+    <div id="scoreboard-screen" class="hidden flex-col">
+        <!-- 頂部控制列：全新設計，支持不儲存返回 & 直接儲存比分退出 -->
+        <div class="sb-settings-bar">
+            <!-- 左側：直接不變更退出 -->
+            <button class="bg-[#fffdf0] text-black border-3 border-black rounded-xl px-3 py-1 text-xs font-black shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-[1px_1px_0px_rgba(0,0,0,1)] flex items-center gap-1" onclick="exitScoreboardWithoutSaving()">
+                ⬅️ 返回賽程
+            </button>
+            
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-black text-black hidden sm:inline">目標：</label>
+                <select id="sb-winCondition" onchange="checkSbWinner()" class="border-2 border-black rounded-lg px-2 py-0.5 font-bold text-xs bg-white text-black">
+                    <option value="4" selected>先得 4 分</option>
+                    <option value="5">先得 5 分</option>
+                    <option value="7">先得 7 分</option>
+                </select>
+            </div>
+
+            <!-- 右側：不論勝負，手動強行儲存當前點數返回 -->
+            <button class="bg-green-500 text-white border-3 border-black rounded-xl px-3 py-1 text-xs font-black shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-[1px_1px_0px_rgba(0,0,0,1)] flex items-center gap-1" onclick="submitAndCloseSbVictory()">
+                💾 儲存並返回
+            </button>
+        </div>
+
+        <div class="sb-main-arena">
+            <!-- 🔵 選手 1 控制區 (藍色卡片) -->
+            <div class="sb-player-card p1-card">
+                <div class="w-full">
+                    <input type="text" class="sb-name-input" id="sb-name-1" value="PLAYER 1">
+                </div>
+                
+                <!-- 點擊比分直接 +1，兩側有快速加減鍵 -->
+                <div class="sb-score-tap-area">
+                    <button class="sb-quick-adjust-btn text-gray-500" onclick="addSbScore(1, -1)">-</button>
+                    <div class="sb-score-display text-[#3b6fa6]" id="sb-score-1" onclick="addSbScore(1, 1)">0</div>
+                    <button class="sb-quick-adjust-btn text-green-600" onclick="addSbScore(1, 1)">+</button>
+                </div>
+                
+                <div class="sb-btn-grid">
+                    <button class="sb-action-btn btn-dash" onclick="addSbScore(1, 3)">
+                        <span class="text-[10px] sm:text-xs">極限擊殺</span>
+                        <span class="text-sm font-black">+3</span>
+                    </button>
+                    <button class="sb-action-btn" onclick="addSbScore(1, 2)">
+                        <span class="text-[10px] sm:text-xs">爆裂/擊飛</span>
+                        <span class="text-sm font-black">+2</span>
+                    </button>
+                    <button class="sb-action-btn" onclick="addSbScore(1, 1)">
+                        <span class="text-[10px] sm:text-xs">轉停獲勝</span>
+                        <span class="text-sm font-black">+1</span>
+                    </button>
+                    <button class="sb-action-btn" onclick="resetSbPlayer(1)">
+                        <span class="text-[10px] sm:text-xs">分數</span>
+                        <span class="text-xs text-red-600 font-black">歸零</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 🔴 選手 2 控制區 (紅色卡片) -->
+            <div class="sb-player-card p2-card">
+                <div class="w-full">
+                    <input type="text" class="sb-name-input" id="sb-name-2" value="PLAYER 2">
+                </div>
+                
+                <!-- 點擊比分直接 +1，兩側有快速加減鍵 -->
+                <div class="sb-score-tap-area">
+                    <button class="sb-quick-adjust-btn text-gray-500" onclick="addSbScore(2, -1)">-</button>
+                    <div class="sb-score-display text-[#cc3333]" id="sb-score-2" onclick="addSbScore(2, 1)">0</div>
+                    <button class="sb-quick-adjust-btn text-green-600" onclick="addSbScore(2, 1)">+</button>
+                </div>
+                
+                <div class="sb-btn-grid">
+                    <button class="sb-action-btn btn-dash" onclick="addSbScore(2, 3)">
+                        <span class="text-[10px] sm:text-xs">極限擊殺</span>
+                        <span class="text-sm font-black">+3</span>
+                    </button>
+                    <button class="sb-action-btn" onclick="addSbScore(2, 2)">
+                        <span class="text-[10px] sm:text-xs">爆裂/擊飛</span>
+                        <span class="text-sm font-black">+2</span>
+                    </button>
+                    <button class="sb-action-btn" onclick="addSbScore(2, 1)">
+                        <span class="text-[10px] sm:text-xs">轉停獲勝</span>
+                        <span class="text-sm font-black">+1</span>
+                    </button>
+                    <button class="sb-action-btn" onclick="resetSbPlayer(2)">
+                        <span class="text-[10px] sm:text-xs">分數</span>
+                        <span class="text-xs text-red-600 font-black">歸零</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🏆 勝利判定浮動彈窗 -->
+        <div class="sb-victory-screen animate-fade-in" id="sb-victory-screen">
+            <div class="sb-winner-banner">📢 WINNER!</div>
+            <div id="sb-winner-name" class="font-black text-black my-4 uppercase tracking-wide" style="font-size: clamp(2rem, 6vw, 4rem);"></div>
+            <button class="ch-btn bg-[#cc3333] text-white text-xl px-12 py-3 mt-4" onclick="submitAndCloseSbVictory()">記錄結果 / 回賽程表</button>
+        </div>
+    </div>
+
+    <!-- 🔒 安全授權彈窗 -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[400] hidden">
+        <div class="bg-[#f4ecd2] border-4 border-black p-6 rounded-2xl max-w-sm w-full mx-4 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div class="text-[#cc3333] font-black text-2xl mb-2 tracking-wider" style="-webkit-text-stroke: 1px black;">🔒 大會安全驗證</div>
+            <p id="auth-modal-desc" class="text-sm text-gray-700 font-bold mb-4"></p>
+            <div class="flex flex-col gap-3 text-left mb-6">
+                <div>
+                    <label class="text-xs text-black font-black block mb-1">請輸入大會管理密碼</label>
+                    <input type="password" id="auth-password" class="w-full p-3 rounded-xl border-3 border-black text-black text-sm bg-white font-bold" placeholder="請輸入密碼">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeAuthModal()" class="flex-1 border-3 border-black bg-white text-black py-2 rounded-xl text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">取消</button>
+                <button id="auth-confirm-btn" class="flex-1 bg-[#cc3333] text-white border-3 border-black py-2 rounded-xl text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">確認執行</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⚙️ Firebase 設定彈窗 -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[450] hidden">
+        <div class="bg-[#f4ecd2] border-4 border-black p-6 rounded-2xl max-w-md w-full mx-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <div class="text-[#cc3333] font-black text-2xl mb-2 text-center tracking-wider" style="-webkit-text-stroke: 1px black;">⚙️ Firebase 連線設定</div>
+            <p class="text-xs text-gray-700 font-bold mb-4 text-center">您可以設定專屬的 Firebase 資料庫以託管獨立賽程，留空則自動還原為公用伺服器。</p>
+            <div class="flex flex-col gap-2.5 text-left mb-6 max-h-[300px] overflow-y-auto pr-1">
+                <div>
+                    <label class="text-xs text-black font-black block mb-0.5">API Key</label>
+                    <input type="text" id="cfg-apiKey" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="AIzaSy...">
+                </div>
+                <div>
+                    <label class="text-xs text-black font-black block mb-0.5">Auth Domain</label>
+                    <input type="text" id="cfg-authDomain" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="milocup-live.firebaseapp.com">
+                </div>
+                <div>
+                    <label class="text-xs text-black font-black block mb-0.5">Project ID</label>
+                    <input type="text" id="cfg-projectId" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="milocup-live">
+                </div>
+                <div>
+                    <label class="text-xs text-black font-black block mb-0.5">Storage Bucket</label>
+                    <input type="text" id="cfg-storageBucket" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="milocup-live.firebasestorage.app">
+                </div>
+                <div>
+                    <label class="text-xs text-black font-black block mb-0.5">Messaging Sender ID</label>
+                    <input type="text" id="cfg-messagingSenderId" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="988514415331">
+                </div>
+                <div>
+                    <label class="text-xs text-black font-black block mb-0.5">App ID</label>
+                    <input type="text" id="cfg-appId" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="1:988514415331:web:...">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeSettingsModal()" class="flex-1 border-3 border-black bg-white text-black py-2 rounded-xl text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">取消</button>
+                <button onclick="saveFirebaseConfig()" class="flex-1 bg-green-500 text-white border-3 border-black py-2 rounded-xl text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">儲存並重載</button>
+            </div>
+            <div class="mt-4 text-center">
+                <button onclick="resetFirebaseConfig()" class="text-xs text-red-600 underline font-black">還原為公用預設伺服器</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ℹ️ 大會提示訊息彈窗 -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[300] hidden">
+        <div class="bg-[#fffdf0] border-3 border-black p-6 rounded-xl max-w-sm w-full mx-4 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <p id="modal-msg" class="text-lg font-bold mb-6 text-black"></p>
+            <button onclick="closeModal()" class="ch-btn px-6 py-2">確定</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const defaultFirebaseConfig = {
+            apiKey: "AIzaSyDdMAx7dk55c_6z3alQenCG-FTONk0TkPY",
+            authDomain: "milocup-live.firebaseapp.com",
+            projectId: "milocup-live",
+            storageBucket: "milocup-live.firebasestorage.app",
+            messagingSenderId: "988514415331",
+            appId: "1:988514415331:web:de2f269acbc03b12070bd6"
+        };
+
+        let firebaseConfig = defaultFirebaseConfig;
+        try {
+            const savedConfig = localStorage.getItem('milo_firebase_config');
+            if (savedConfig) {
+                firebaseConfig = JSON.parse(savedConfig);
+            }
+        } catch (e) {
+            console.error("Failed to load custom Firebase config", e);
+        }
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'milocup-live-data';
+
+        // Parse dynamic tournament ID from query parameters or hash
+        function getTournamentId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let tId = urlParams.get('t') || urlParams.get('tournament');
+            if (!tId && window.location.hash) {
+                tId = window.location.hash.substring(1);
+            }
+            return tId || 'main';
+        }
+        const tournamentId = getTournamentId();
+
+        window.globalState = null;
+        window.currentUser = null;
+        window.userRole = localStorage.getItem(`role_${appId}_${tournamentId}`) || null;
+        window.docRef = null;
+        window.currentTab = 'main'; 
+        
+        let sbScores = { 1: 0, 2: 0 };
+        let sbGameOver = false;
+        let currentLoadedMatchContext = null; 
+        let currentAuthAction = null;
+
+        const colors = [
+            { main: '#3b6fa6', bg: 'rgba(59, 111, 166, 0.08)' }, 
+            { main: '#cc3333', bg: 'rgba(204, 51, 51, 0.08)' }, 
+            { main: '#e67e22', bg: 'rgba(230, 126, 34, 0.08)' }, 
+            { main: '#16a085', bg: 'rgba(22, 160, 133, 0.08)' }
+        ];
+        const groupLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+        async function init() {
+            showCoreScreen('loading-screen');
+            if (!app) { showModal("Firebase 環境未設定。"); return; }
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                else await signInAnonymously(auth);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        window.currentUser = user; 
+                        window.docRef = doc(db, 'artifacts', appId, 'public', 'data', 'tournament', tournamentId); 
+                        listenToState();
+                    }
+                });
+            } catch (e) { showModal("登入失敗: " + e.message); }
+        }
+
+        function listenToState() {
+            onSnapshot(window.docRef, (snap) => {
+                const shareBtn = document.getElementById('share-btn');
+                if (snap.exists() && !snap.data().deleted) {
+                    window.globalState = snap.data();
+                    document.getElementById('system-status').innerText = '🟢 即時同步中'; 
+                    document.getElementById('system-status').className = 'text-green-700 font-bold text-sm tracking-wide';
+                    if (shareBtn) shareBtn.classList.remove('hidden');
+                } else {
+                    window.globalState = null;
+                    document.getElementById('system-status').innerText = '⚪ 尚未建立賽事'; 
+                    document.getElementById('system-status').className = 'text-gray-500 font-bold text-sm';
+                    if (shareBtn) shareBtn.classList.add('hidden');
+                }
+                renderApp();
+            }, (error) => { showModal("同步錯誤: " + error.message); });
+        }
+
+        window.switchTab = function(tabName) {
+            window.currentTab = tabName;
+            syncTabsUI();
+        }
+
+        function syncTabsUI() {
+            const btnMain = document.getElementById('tab-btn-main');
+            const btnScore = document.getElementById('tab-btn-score');
+            const appContainer = document.getElementById('app-container');
+            const scoreScreen = document.getElementById('scoreboard-screen');
+
+            if (!btnMain || !btnScore || !appContainer || !scoreScreen) return;
+
+            if (window.currentTab === 'main') {
+                btnMain.className = 'ch-btn tab-btn tab-active';
+                btnScore.className = 'ch-btn tab-btn tab-inactive';
+                
+                // 完全排除 CSS 衝突：在此處顯式設定 display: flex 或 hidden
+                if (!currentLoadedMatchContext) {
+                    btnScore.classList.add('hidden');
+                }
+                
+                appContainer.classList.remove('hidden');
+                appContainer.classList.add('flex');
+                
+                scoreScreen.classList.add('hidden');
+                scoreScreen.classList.remove('flex');
+            } else if (window.currentTab === 'score') {
+                btnScore.className = 'ch-btn tab-btn tab-active';
+                btnMain.className = 'ch-btn tab-btn tab-inactive';
+                
+                appContainer.classList.add('hidden');
+                appContainer.classList.remove('flex');
+                
+                scoreScreen.classList.remove('hidden');
+                scoreScreen.classList.add('flex');
+            }
+        }
+
+        function showCoreScreen(id) {
+            ['loading-screen', 'login-screen', 'setup-screen', 'main-board-screen'].forEach(s => {
+                if (document.getElementById(s)) document.getElementById(s).classList.add('hidden');
+            });
+            if (document.getElementById(id)) document.getElementById(id).classList.remove('hidden');
+            syncTabsUI();
+        }
+
+        window.loadMatchToScoreboard = function(p1, p2, matchContext = null) {
+            document.getElementById('sb-name-1').value = p1 || 'PLAYER 1';
+            document.getElementById('sb-name-2').value = p2 || 'PLAYER 2';
+            currentLoadedMatchContext = matchContext; 
+            resetAllAndCloseSbVictory();
+            
+            const btnScore = document.getElementById('tab-btn-score');
+            if (btnScore) {
+                btnScore.classList.remove('hidden');
+            }
+            window.switchTab('score'); 
+        }
+
+        function renderApp() {
+            updateTopBar();
+            if (!window.userRole) { renderLoginScreen(); showCoreScreen('login-screen'); return; }
+            document.getElementById('nav-tabs').classList.remove('hidden');
+
+            if (window.userRole === 'admin') {
+                if (!window.globalState) showCoreScreen('setup-screen');
+                else { renderMainBoard(); showCoreScreen('main-board-screen'); }
+            } else {
+                if (!window.globalState) { window.userRole = null; localStorage.removeItem(`role_${appId}_${tournamentId}`); renderApp(); return; }
+                renderMainBoard(); showCoreScreen('main-board-screen');
+            }
+        }
+
+        function updateTopBar() {
+            const uiInfo = document.getElementById('user-info'); const badge = document.getElementById('role-badge');
+            const btnScore = document.getElementById('tab-btn-score');
+            
+            if (window.userRole) {
+                uiInfo.classList.remove('hidden'); uiInfo.classList.add('flex');
+                if (window.userRole === 'admin') { 
+                    badge.innerText = '👑 主辦單位'; 
+                    badge.style.backgroundColor = 'var(--ch-yellow)'; badge.style.color = '#000';
+                } else { 
+                    badge.innerText = `👤 ${window.userRole}`; 
+                    badge.style.backgroundColor = '#fff'; badge.style.color = '#000';
+                }
+                
+                if (btnScore) {
+                    if (currentLoadedMatchContext) {
+                        btnScore.classList.remove('hidden');
+                    } else {
+                        btnScore.classList.add('hidden');
+                    }
+                }
+            } else { 
+                uiInfo.classList.add('hidden'); 
+                uiInfo.classList.remove('flex'); 
+                document.getElementById('nav-tabs').classList.add('hidden'); 
+            }
+        }
+
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+                else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+
+        window.toggleGroupCount = function() {
+            const format = document.getElementById('tournamentFormat').value;
+            if (format === 'group') document.getElementById('groupCountContainer').classList.remove('hidden'); 
+            else document.getElementById('groupCountContainer').classList.add('hidden');
+        }
+
+        window.renderLoginScreen = function() {
+            const select = document.getElementById('player-select');
+            if (!select) return;
+            if (window.globalState && window.globalState.players) {
+                const realPlayers = window.globalState.players.filter(p => p !== '輪空');
+                select.innerHTML = '<option value="">-- 請選擇 --</option>' + realPlayers.map(p => `<option value="${p}">${p}</option>`).join(''); select.disabled = false;
+            } else { select.innerHTML = '<option value="">-- 賽事尚未建立 --</option>'; select.disabled = true; }
+        }
+
+        function optimizeMatchOrder(matches) {
+            if (matches.length <= 2) return matches; let arranged = []; let playerLastPlayed = {};
+            arranged.push(matches.shift()); playerLastPlayed[arranged[0].p1] = 0; playerLastPlayed[arranged[0].p2] = 0;
+            while (matches.length > 0) {
+                let bestIndex = 0; let maxScore = -1;
+                for (let i = 0; i < matches.length; i++) {
+                    let m = matches[i]; let dist1 = playerLastPlayed[m.p1] !== undefined ? arranged.length - playerLastPlayed[m.p1] : 999; let dist2 = playerLastPlayed[m.p2] !== undefined ? arranged.length - playerLastPlayed[m.p2] : 999;
+                    let score = Math.min(dist1, dist2); if (score > maxScore) { maxScore = score; bestIndex = i; }
+                }
+                let nextMatch = matches.splice(bestIndex, 1)[0]; arranged.push(nextMatch); playerLastPlayed[nextMatch.p1] = arranged.length - 1; playerLastPlayed[nextMatch.p2] = arranged.length - 1;
+            } return arranged;
+        }
+
+        /* 📊 標準對戰樹佈局（依照國際標準種子排序，實力強者最後碰頭） 📊 */
+        function getBracketConfig(bracketSize) {
+            if (bracketSize === 4) {
+                return [
+                    { id: 1, p1SeedIdx: 1, p2SeedIdx: 4, title: "準決賽 1" },
+                    { id: 2, p1SeedIdx: 2, p2SeedIdx: 3, title: "準決賽 2" }
+                ];
+            }
+            if (bracketSize === 8) {
+                return [
+                    { id: 1, p1SeedIdx: 1, p2SeedIdx: 8, title: "八強賽 1" },
+                    { id: 2, p1SeedIdx: 4, p2SeedIdx: 5, title: "八強賽 2" },
+                    { id: 3, p1SeedIdx: 3, p2SeedIdx: 6, title: "八強賽 3" },
+                    { id: 4, p1SeedIdx: 2, p2SeedIdx: 7, title: "八強賽 4" }
+                ];
+            }
+            return [
+                { id: 1, p1SeedIdx: 1, p2SeedIdx: 16, title: "16強賽 1" },
+                { id: 2, p1SeedIdx: 8, p2SeedIdx: 9,  title: "16強賽 2" },
+                { id: 3, p1SeedIdx: 5, p2SeedIdx: 12, title: "16強賽 3" },
+                { id: 4, p1SeedIdx: 4, p2SeedIdx: 13, title: "16強賽 4" },
+                { id: 5, p1SeedIdx: 3, p2SeedIdx: 14, title: "16強賽 5" },
+                { id: 6, p1SeedIdx: 6, p2SeedIdx: 11, title: "16強賽 6" },
+                { id: 7, p1SeedIdx: 7, p2SeedIdx: 10, title: "16強賽 7" },
+                { id: 8, p1SeedIdx: 2, p2SeedIdx: 15, title: "16強賽 8" }
+            ];
+        }
+
+        function getRoundTitle(bracketSize) {
+            if (bracketSize === 16) return "Round of 16 (16強賽)";
+            if (bracketSize === 8) return "Quarter-Finals (八強賽)";
+            if (bracketSize === 4) return "Semi-Finals (四強賽)";
+            return `淘汰賽 Round of ${bracketSize}`;
+        }
+
+        function getMatchTitle(numMatches, index) {
+            if (numMatches === 8) return `16強賽 ${index}`;
+            if (numMatches === 4) return `八強賽 ${index}`;
+            if (numMatches === 2) return `準決賽 ${index}`;
+            return `複賽 ${index}`;
+        }
+
+        /* 🏆 自適應多層淘汰對戰配對引擎 🏆 */
+        function generateKnockoutStructure(numGroups) {
+            const totalAdvancing = numGroups * 2;
+            let bracketSize = 2;
+            while (bracketSize < totalAdvancing) { bracketSize *= 2; }
+            
+            let cols = [];
+            let config = getBracketConfig(bracketSize);
+            
+            let r1Matches = config.map(m => {
+                let p1Label = m.p1SeedIdx <= numGroups ? `第 ${m.p1SeedIdx} 順位 (小組#1)` : (m.p1SeedIdx <= 2 * numGroups ? `第 ${m.p1SeedIdx} 順位 (小組#2)` : '輪空');
+                let p2Label = m.p2SeedIdx <= numGroups ? `第 ${m.p2SeedIdx} 順位 (小組#1)` : (m.p2SeedIdx <= 2 * numGroups ? `第 ${m.p2SeedIdx} 順位 (小組#2)` : '輪空');
+                
+                return {
+                    id: `ko_r1_${m.id}`,
+                    title: m.title,
+                    p1: '', p2: '', s1: 0, s2: 0,
+                    p1Seed: p1Label,
+                    p2Seed: p2Label,
+                    p1SeedIdx: m.p1SeedIdx,
+                    p2SeedIdx: m.p2SeedIdx,
+                    isRound1: true,
+                    nextMatchId: null,
+                    loserMatchId: null
+                };
+            });
+            
+            cols.push({
+                title: getRoundTitle(bracketSize),
+                matches: r1Matches
+            });
+            
+            let currentMatches = r1Matches;
+            let roundNum = 1;
+            let tempSize = bracketSize;
+            
+            while (tempSize > 2) {
+                tempSize /= 2;
+                let nextRoundMatchesCount = tempSize / 2;
+                let nextMatches = [];
+                let isFinalRound = (tempSize === 2);
+                
+                for (let i = 1; i <= nextRoundMatchesCount; i++) {
+                    let title = isFinalRound ? '🥇 冠軍戰' : getMatchTitle(nextRoundMatchesCount, i);
+                    nextMatches.push({
+                        id: `ko_r${roundNum + 1}_${i}`,
+                        title: title,
+                        p1: '', p2: '', s1: 0, s2: 0,
+                        p1Seed: `勝 R${roundNum}M${i*2 - 1}`,
+                        p2Seed: `勝 R${roundNum}M${i*2}`,
+                        nextMatchId: null,
+                        loserMatchId: null,
+                        isFinal: isFinalRound
+                    });
+                }
+                
+                currentMatches.forEach((m, idx) => {
+                    let targetMatchIdx = Math.ceil((idx + 1) / 2) - 1;
+                    if (targetMatchIdx < nextMatches.length) {
+                        m.nextMatchId = nextMatches[targetMatchIdx].id;
+                    }
+                    if (tempSize === 2) {
+                        m.loserMatchId = `ko_bronze`;
+                    }
+                });
+                
+                if (isFinalRound) {
+                    nextMatches.push({
+                        id: `ko_bronze`,
+                        title: '🥉 季軍戰',
+                        p1: '', p2: '', s1: 0, s2: 0,
+                        p1Seed: '敗 準決賽1',
+                        p2Seed: '敗 準決賽2',
+                        isBronze: true
+                    });
+                }
+                
+                cols.push({
+                    title: isFinalRound ? "Finals (決賽階段)" : getRoundTitle(tempSize),
+                    matches: nextMatches
+                });
+                
+                currentMatches = nextMatches;
+                roundNum++;
+            }
+            
+            return cols;
+        }
+
+        /* 🏅 預賽自動輪空晉級 🏅 */
+        function checkAndProcessByes(s) {
+            if (!s.knockout) return false;
+            let changed = false;
+            s.knockout.forEach((col, colIdx) => {
+                col.matches.forEach((m, mIdx) => {
+                    if (m.p2 === '輪空' && m.p1 && m.p1 !== '輪空' && m.s1 === 0 && m.s2 === 0) {
+                        m.s1 = 1; m.s2 = 0;
+                        advanceWinner(s, colIdx, mIdx, m.p1, '輪空');
+                        changed = true;
+                    }
+                    if (m.p1 === '輪空' && m.p2 && m.p2 !== '輪空' && m.s1 === 0 && m.s2 === 0) {
+                        m.s1 = 0; m.s2 = 1;
+                        advanceWinner(s, colIdx, mIdx, m.p2, '輪空');
+                        changed = true;
+                    }
+                });
+            });
+            return changed;
+        }
+
+        /* 🚀 戰績傳輸 🚀 */
+        function advanceWinner(s, colIdx, mIdx, winner, loser) {
+            const targetMatch = s.knockout[colIdx].matches[mIdx];
+            if (!winner) return;
+            
+            if (targetMatch.nextMatchId && colIdx + 1 < s.knockout.length) {
+                let nextCol = s.knockout[colIdx + 1];
+                let nextMatch = nextCol.matches.find(m => m.id === targetMatch.nextMatchId);
+                if (nextMatch) {
+                    const predIdx = s.knockout[colIdx].matches.findIndex(m => m.id === targetMatch.id);
+                    if (predIdx !== -1) {
+                        if (predIdx % 2 === 0) { 
+                            nextMatch.p1 = winner; 
+                            nextMatch.p1Seed = `勝 ${targetMatch.title}`;
+                        } else { 
+                            nextMatch.p2 = winner; 
+                            nextMatch.p2Seed = `勝 ${targetMatch.title}`;
+                        }
+                    }
+                }
+            }
+            
+            if (targetMatch.loserMatchId) {
+                let finalCol = s.knockout[s.knockout.length - 1];
+                let bronzeMatch = finalCol.matches.find(m => m.id === targetMatch.loserMatchId);
+                if (bronzeMatch) {
+                    const predIdx = s.knockout[colIdx].matches.findIndex(m => m.id === targetMatch.id);
+                    if (predIdx !== -1) {
+                        if (predIdx % 2 === 0) { 
+                            bronzeMatch.p1 = loser; 
+                            bronzeMatch.p1Seed = `敗 ${targetMatch.title}`;
+                        } else { 
+                            bronzeMatch.p2 = loser; 
+                            bronzeMatch.p2Seed = `敗 ${targetMatch.title}`;
+                        }
+                    }
+                }
+            }
+        }
+
+        window.triggerAuthModal = function(actionType) {
+            currentAuthAction = actionType;
+            const desc = document.getElementById('auth-modal-desc');
+            if (actionType === 'create') desc.innerText = "正在全新建立大會賽程表，此動作會覆蓋掉目前雲端上所有的對戰紀錄！";
+            else if (actionType === 'delete') desc.innerText = "確定要完全清除並刪除此賽事嗎？此動作將永久抹除所有雲端數據且不可復原！";
+            
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+        
+        window.closeAuthModal = function() { 
+            document.getElementById('auth-modal').classList.add('hidden'); 
+            currentAuthAction = null; 
+        }
+        
+        function verifyAndExecuteAction() {
+            const p = document.getElementById('auth-password').value;
+            if (p === "milo") {
+                const action = currentAuthAction;
+                closeAuthModal();
+                if (action === 'create') executeGenerateTournament();
+                else if (action === 'delete') executeResetTournament();
+            } else { 
+                alert("驗證失敗：管理員密碼輸入錯誤！"); 
+            }
+        }
+
+        function generateSingleElimination(players) {
+            let cols = []; let numPlayers = players.length; let bracketSize = Math.pow(2, Math.ceil(Math.log2(numPlayers))); if (bracketSize < 2) bracketSize = 2;
+            let numRounds = Math.log2(bracketSize); let currentPlayers = [...players]; while(currentPlayers.length < bracketSize) currentPlayers.push('輪空'); currentPlayers.sort(() => Math.random() - 0.5); 
+            let roundTitles = [];
+            for(let i=0; i<numRounds; i++) {
+                let mCount = bracketSize / Math.pow(2, i + 1); if (mCount === 1) roundTitles.push('Finals (決賽)'); else if (mCount === 2) roundTitles.push('Semi-Finals (四強)'); else if (mCount === 4) roundTitles.push('Quarter-Finals (八強)'); else roundTitles.push(`Round ${i+1} (${mCount*2}強)`);
+            }
+            let matchIdCounter = 1;
+            for(let r=0; r<numRounds; r++) {
+                let matchesInRound = bracketSize / Math.pow(2, r + 1); let roundMatches = [];
+                for(let m=0; m<matchesInRound; m++) {
+                    let isFinal = (r === numRounds - 1); let title = isFinal ? '🥇 冠軍戰' : `Match ${matchIdCounter}`; let p1 = '', p2 = '', p1Seed = '', p2Seed = '';
+                    let loserMatchId = null;
+                    if (r === numRounds - 2) loserMatchId = `MBronze`;
+
+                    if (r === 0) { p1 = currentPlayers[m*2]; p2 = currentPlayers[m*2 + 1]; p1Seed = `隨機排籤`; p2Seed = `隨機排籤`; } 
+                    else { let prevM1 = cols[r-1].matches[m*2].id; let prevM2 = cols[r-1].matches[m*2 + 1].id; p1Seed = `勝 ${prevM1}`; p2Seed = `勝 ${prevM2}`; }
+                    
+                    roundMatches.push({ id: `M${matchIdCounter}`, title: title, p1: p1, p2: p2, s1: 0, s2: 0, p1Seed: p1Seed, p2Seed: p2Seed, isFinal: isFinal, nextMatchId: isFinal ? null : `M${Math.ceil(matchIdCounter/2) + matchesInRound}`, loserMatchId: loserMatchId }); matchIdCounter++;
+                } cols.push({ title: roundTitles[r], matches: roundMatches });
+                if (r === numRounds - 1) cols[r].matches.push({ id: `MBronze`, title: '🥉 季軍戰', p1: '', p2: '', s1: 0, s2: 0, p1Seed: '敗 準決賽', p2Seed: '敗 準決賽', isBronze: true });
+            } return cols;
+        }
+
+        function executeGenerateTournament() {
+            const text = document.getElementById('playerList').value; let players = text.split('\n').map(p => p.trim()).filter(p => p !== '');
+            const format = document.getElementById('tournamentFormat').value; const numGroups = parseInt(document.getElementById('groupCount').value);
+            if (players.length < 2) { showModal(`至少需要 2 名選手！`); return; }
+            let groupsData = []; let knockoutData = [];
+            if (format === 'group') {
+                if (players.length < numGroups * 2) { showModal(`小組賽分 ${numGroups} 組至少需要 ${numGroups * 2} 名選手！`); return; } players.sort(() => Math.random() - 0.5);
+                groupsData = Array.from({length: numGroups}, (_, i) => ({ id: i, name: groupLabels[i], players: [], matches: [] }));
+                players.forEach((p, index) => groupsData[index % numGroups].players.push({ name: p, w: 0, l: 0, scoreDiff: 0, rank: '-' }));
+                groupsData.forEach((g) => {
+                    let tempMatches = []; for (let i = 0; i < g.players.length; i++) for (let j = i + 1; j < g.players.length; j++) tempMatches.push({ p1: g.players[i].name, p2: g.players[j].name, s1: 0, s2: 0 });
+                    g.matches = optimizeMatchOrder(tempMatches).map((m, idx) => ({ id: `g${g.id}_${idx+1}`, p1: m.p1, p2: m.p2, s1: 0, s2: 0 }));
+                });
+                knockoutData = generateKnockoutStructure(numGroups);
+            } else if (format === 'knockout') { knockoutData = generateSingleElimination(players); } 
+
+            const newState = { players: players, format: format, numGroups: format==='group'?numGroups:0, groups: groupsData, knockout: knockoutData };
+            setDoc(window.docRef, newState).then(() => { showModal("🚀 大會新賽程已成功發布並同步！"); }).catch((e) => { showModal("發布失敗: " + e.message); });
+        }
+
+        function executeResetTournament() {
+            showCoreScreen('loading-screen');
+            setDoc(window.docRef, { deleted: true }).then(() => { window.location.reload(); }).catch(() => { showModal("重置失敗"); });
+        }
+
+        /* ⚔️ 小組排位全大會公平大排名與衝突避讓 ⚔️ */
+        window.advanceGroupWinners = async function() {
+            if (!window.globalState || !window.globalState.groups) return;
+            let s = JSON.parse(JSON.stringify(window.globalState));
+            
+            const numGroups = s.numGroups;
+            const totalAdvancing = numGroups * 2;
+            let bracketSize = 2;
+            while (bracketSize < totalAdvancing) { bracketSize *= 2; }
+            
+            let winners = [];
+            let runnersUp = [];
+            
+            s.groups.forEach(g => {
+                let p1Obj = g.players.find(p => p.rank == "1" || p.rank == 1);
+                let p2Obj = g.players.find(p => p.rank == "2" || p.rank == 2);
+                
+                if (!p1Obj || !p2Obj) {
+                    let backupSort = [...g.players].sort((a, b) => {
+                        if (b.w !== a.w) return b.w - a.w;
+                        return b.scoreDiff - a.scoreDiff;
+                    });
+                    if (backupSort[0]) p1Obj = backupSort[0];
+                    if (backupSort[1]) p2Obj = backupSort[1];
+                }
+                
+                if (p1Obj) winners.push({ name: p1Obj.name, group: g.name, w: p1Obj.w, scoreDiff: p1Obj.scoreDiff });
+                if (p2Obj) runnersUp.push({ name: p2Obj.name, group: g.name, w: p2Obj.w, scoreDiff: p2Obj.scoreDiff });
+            });
+            
+            const sortPerformance = (a, b) => {
+                if (b.w !== a.w) return b.w - a.w;
+                return b.scoreDiff - a.scoreDiff;
+            };
+            winners.sort(sortPerformance);
+            runnersUp.sort(sortPerformance);
+            
+            let seeds = Array(bracketSize + 1).fill('輪空');
+            for (let i = 0; i < winners.length; i++) {
+                seeds[i + 1] = winners[i]; 
+            }
+            for (let i = 0; i < runnersUp.length; i++) {
+                seeds[numGroups + i + 1] = runnersUp[i]; 
+            }
+            
+            let config = getBracketConfig(bracketSize);
+            let maxAttempts = 100;
+            let attempts = 0;
+            let hasConflict = true;
+            
+            while (hasConflict && attempts < maxAttempts) {
+                hasConflict = false;
+                attempts++;
+                for (let m of config) {
+                    let p1 = seeds[m.p1SeedIdx];
+                    let p2 = seeds[m.p2SeedIdx];
+                    if (p1 && p2 && p1 !== '輪空' && p2 !== '輪空' && p1.group === p2.group) {
+                        hasConflict = true;
+                        let runnerUpIdx = m.p2SeedIdx; 
+                        
+                        let swapped = false;
+                        for (let targetIdx = numGroups + 1; targetIdx <= 2 * numGroups; targetIdx++) {
+                            if (targetIdx !== runnerUpIdx) {
+                                let targetPlayer = seeds[targetIdx];
+                                if (targetPlayer !== '輪空' && targetPlayer.group !== p1.group) {
+                                    let otherMatch = config.find(om => om.p1SeedIdx === targetIdx || om.p2SeedIdx === targetIdx);
+                                    let otherOpponentIdx = otherMatch.p1SeedIdx === targetIdx ? otherMatch.p2SeedIdx : otherMatch.p1SeedIdx;
+                                    let otherOpponent = seeds[otherOpponentIdx];
+                                    
+                                    if (otherOpponent === '輪空' || seeds[runnerUpIdx].group !== otherOpponent.group) {
+                                        let temp = seeds[runnerUpIdx];
+                                        seeds[runnerUpIdx] = seeds[targetIdx];
+                                        seeds[targetIdx] = temp;
+                                        swapped = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (swapped) break; 
+                    }
+                }
+            }
+            
+            if (s.knockout && s.knockout[0]) {
+                s.knockout[0].matches.forEach(m => {
+                    let p1Obj = seeds[m.p1SeedIdx];
+                    let p2Obj = seeds[m.p2SeedIdx];
+                    
+                    m.p1 = p1Obj === '輪空' ? '輪空' : (p1Obj ? p1Obj.name : '');
+                    m.p2 = p2Obj === '輪空' ? '輪空' : (p2Obj ? p2Obj.name : '');
+                    
+                    if (p1Obj && p1Obj !== '輪空') {
+                        m.p1Seed = `${p1Obj.group}組#${winners.some(w => w.name === p1Obj.name) ? '1' : '2'}`;
+                    }
+                    if (p2Obj && p2Obj !== '輪空') {
+                        m.p2Seed = `${p2Obj.group}組#${winners.some(w => w.name === p2Obj.name) ? '1' : '2'}`;
+                    }
+                });
+                
+                checkAndProcessByes(s);
+                await setDoc(window.docRef, s);
+                showModal("🎉 預賽勝出者已依戰績大排名公平分發！已自動避開首輪分組內戰，並完成輪空玩家自動晉級！");
+            }
+        }
+
+        function renderMainBoard() {
+            const s = window.globalState; const isAdmin = window.userRole === 'admin'; const isGroupMode = s.format === 'group';
+            if (!isAdmin) renderPlayerDashboard(s); else document.getElementById('player-dashboard').classList.add('hidden');
+            const gContainer = document.getElementById('groups-container'); const kSection = document.getElementById('knockout-section'); const kTitle = document.getElementById('knockout-title');
+
+            if (isAdmin && isGroupMode) document.getElementById('admin-group-actions').classList.remove('hidden');
+            else document.getElementById('admin-group-actions').classList.add('hidden');
+
+            if (!isGroupMode) { 
+                gContainer.classList.add('hidden'); kTitle.innerText = "⚔️ 單淘汰賽 賽程表"; 
+            } else {
+                gContainer.classList.remove('hidden'); kTitle.innerText = "🏆 決賽階段";
+                let gHtml = '';
+                s.groups.forEach((g, idx) => {
+                    let c = colors[idx % colors.length];
+                    let tableRows = g.players.map((p, pIdx) => `
+                        <tr>
+                            <td class="text-xs font-bold text-gray-600">${g.name}${pIdx+1}</td><td class="font-black text-black">${p.name}</td>
+                            <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-sm bg-gray-100 hover:bg-gray-200 border px-1 rounded" onclick="updateScoreState('g_p', ${idx}, ${pIdx}, 'w', -1)">-</button>` : ''}<span>${p.w}</span>${isAdmin ? `<button class="score-ctrl text-sm bg-gray-100 hover:bg-gray-200 border px-1 rounded" onclick="updateScoreState('g_p', ${idx}, ${pIdx}, 'w', 1)">+</button>` : ''}</div></td>
+                            <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-sm bg-gray-100 hover:bg-gray-200 border px-1 rounded" onclick="updateScoreState('g_p', ${idx}, ${pIdx}, 'l', -1)">-</button>` : ''}<span>${p.l}</span>${isAdmin ? `<button class="score-ctrl text-sm bg-gray-100 hover:bg-gray-200 border px-1 rounded" onclick="updateScoreState('g_p', ${idx}, ${pIdx}, 'l', 1)">+</button>` : ''}</div></td>
+                            <td class="text-secondary font-bold"><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-sm bg-gray-100 hover:bg-gray-200 border px-1 rounded" onclick="updateScoreState('g_p', ${idx}, ${pIdx}, 'scoreDiff', -1)">-</button>` : ''}<span>${p.scoreDiff > 0 ? '+' + p.scoreDiff : p.scoreDiff}</span>${isAdmin ? `<button class="score-ctrl text-sm bg-gray-100 hover:bg-gray-200 border px-1 rounded" onclick="updateScoreState('g_p', ${idx}, ${pIdx}, 'scoreDiff', 1)">+</button>` : ''}</div></td>
+                            <td> ${isAdmin ? `<input type="text" class="w-14 text-center bg-yellow-50 border-2 border-black focus:border-red-500 font-black text-red-600 text-sm rounded" value="${p.rank}" onchange="updateScoreState('g_r', ${idx}, ${pIdx}, 'rank', this.value)">` : `<span class="font-black text-red-600">${p.rank}</span>`} </td>
+                        </tr>
+                    `).join('');
+
+                    // 修改點：小組賽對戰紀錄中，為雙方選手都配備獨立的 [-] 與 [+] 加減分按鈕
+                    let matchesHtml = g.matches.map((m, mIdx) => `
+                        <div class="match-row p-2 flex items-center justify-between">
+                            <div class="flex-1 text-right truncate pr-2 ${m.p1===window.userRole ? 'text-red-600 font-black':''}">${m.p1}</div>
+                            <div class="flex items-center gap-1 sm:gap-2">
+                                ${isAdmin ? `
+                                <div class="flex items-center gap-1">
+                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's1', -1)">-</button>
+                                    <span class="score-box">${m.s1}</span>
+                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's1', 1)">+</button>
+                                </div>
+                                ` : `<span class="score-box">${m.s1}</span>`}
+                                
+                                ${isAdmin ? `<button class="action-btn border border-black rounded bg-amber-400 px-2 py-0.5 text-xs font-bold shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-[0px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'group', gIdx:${idx}, mIdx:${mIdx}})">⚔️</button>` : `<span class="text-gray-500 text-xs mx-1">VS</span>`}
+                                
+                                ${isAdmin ? `
+                                <div class="flex items-center gap-1">
+                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's2', -1)">-</button>
+                                    <span class="score-box">${m.s2}</span>
+                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's2', 1)">+</button>
+                                </div>
+                                ` : `<span class="score-box">${m.s2}</span>`}
+                            </div>
+                            <div class="flex-1 text-left truncate pl-2 ${m.p2===window.userRole ? 'text-red-600 font-black':''}">${m.p2}</div>
+                        </div>
+                    `).join('');
+
+                    gHtml += `<div class="ch-box p-4 rounded-2xl flex-1 min-w-[300px] max-w-[500px]"><h2 class="flex justify-between items-center text-xl font-black border-b-4 pb-2 mb-3" style="color:${c.main}; border-color:${c.main};"><span>${g.name}組 預賽</span><span class="text-xs border border-black px-2 py-0.5 rounded-lg bg-white text-gray-700">${g.players.length}人</span></h2><div class="overflow-x-auto mb-4"><table class="text-sm"><tr><th>代號</th><th>選手</th><th>勝</th><th>敗</th><th>得失</th><th>名次</th></tr>${tableRows}</table></div><div class="text-center text-gray-500 text-xs mb-2 border-b border-dashed border-gray-400 pb-1">⚔️ 對戰紀錄</div>${matchesHtml}</div>`;
+                });
+                gContainer.innerHTML = gHtml;
+            }
+
+            if (s.knockout) {
+                kSection.classList.remove('hidden'); document.getElementById('knockout-container').style.gridTemplateColumns = `repeat(auto-fit, minmax(240px, 1fr))`;
+                let kHtml = s.knockout.map((col, colIdx) => {
+                    let matchesHtml = col.matches.map((m, mIdx) => {
+                        let styleClass = m.isFinal ? 'gold' : (m.isBronze ? 'bronze border-amber-700' : '');
+                        const renderPlayerRow = (pKey, sKey, seed) => {
+                            let pName = m[pKey] || '';
+                            let isBye = pName === '輪空' || seed === '輪空';
+                            let displayPName = isBye ? '<span class="text-gray-400 italic">輪空 (Bye)</span>' : (pName || `<span class="text-gray-400 font-normal">${seed}</span>`);
+                            
+                            return `
+                                <div class="flex justify-between items-center p-2 border-b border-gray-300 last:border-0 ${isBye ? 'bg-gray-50/50' : ''}">
+                                    <div class="flex items-center flex-1 overflow-hidden">
+                                        <span class="seed mr-1 bg-gray-200 text-black px-1.5 border border-black rounded text-[10px] font-bold">${seed}</span>
+                                        ${isAdmin && !isBye ? `<input type="text" class="bg-yellow-50 border border-black rounded px-1 w-24 text-xs font-bold focus:border-red-500 flex-1 mr-2" value="${pName}" onchange="updateScoreState('k_n', ${colIdx}, ${mIdx}, '${pKey}', this.value)">` : `<span class="text-sm truncate font-black ${pName===window.userRole ? 'text-red-600':''}">${displayPName}</span>`}
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        ${isAdmin && !isBye ? `<button class="score-ctrl text-xs h-6 w-6 border bg-gray-50 font-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('k_m', ${colIdx}, ${mIdx}, '${sKey}', -1)">-</button>` : ''}
+                                        <span class="score-box h-7 leading-6 min-w-[28px] text-xs">${isBye ? '-' : m[sKey]}</span>
+                                        ${isAdmin && !isBye ? `<button class="score-ctrl text-xs h-6 w-6 border bg-gray-50 font-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('k_m', ${colIdx}, ${mIdx}, '${sKey}', 1)">+</button>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        };
+                        
+                        let hasBye = m.p1 === '輪空' || m.p2 === '輪空' || m.p1Seed === '輪空' || m.p2Seed === '輪空';
+                        
+                        return `
+                            <div class="matchup ${styleClass} mb-4">
+                                <div class="matchup-title flex justify-between px-2 items-center">
+                                    <span>${m.title}</span>
+                                    ${isAdmin && !hasBye && m.p1 !== '' && m.p2 !== '' ? `<button class="border border-black bg-white text-black px-1 text-[10px] font-bold rounded hover:bg-yellow-100" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'knockout', cIdx:${colIdx}, mIdx:${mIdx}})">⚔️ 計分</button>` : ''}
+                                </div>
+                                ${renderPlayerRow('p1', 's1', m.p1Seed)}
+                                ${renderPlayerRow('p2', 's2', m.p2Seed)}
+                            </div>`;
+                    }).join('');
+                    return `<div class="flex flex-col gap-2"><h3 class="text-center text-black bg-[#faf2d3] border-2 border-black p-2 rounded-xl text-sm font-black">${col.title}</h3>${matchesHtml}</div>`;
+                }).join('');
+                document.getElementById('knockout-container').innerHTML = kHtml;
+            }
+            if (isAdmin) document.getElementById('admin-controls').classList.remove('hidden'); else document.getElementById('admin-controls').classList.add('hidden');
+        }
+
+        window.loginAsAdmin = function() { window.userRole = 'admin'; localStorage.setItem(`role_${appId}_${tournamentId}`, 'admin'); renderApp(); }
+        
+        window.loginAsPlayer = function() { 
+            const name = document.getElementById('player-select').value; 
+            if (!name) { alert("請選擇一個名字！"); return; } 
+            window.userRole = name; 
+            localStorage.setItem(`role_${appId}_${tournamentId}`, name); 
+            renderApp(); 
+        }
+
+        function renderPlayerDashboard(s) {
+            const dash = document.getElementById('player-dashboard'); const content = document.getElementById('next-match-content'); const pName = window.userRole;
+            let nextMatch = null; let matchType = '';
+            if (s.format === 'group' && s.groups) {
+                for (let g of s.groups) { for (let m of g.matches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = `${g.name}組 預賽`; break; } } if(nextMatch) break; }
+            }
+            if (!nextMatch && s.knockout) {
+                for (let col of s.knockout) { for (let m of col.matches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = m.title; break; } } if(nextMatch) break; }
+            }
+            dash.classList.remove('hidden');
+            if (nextMatch) {
+                const opponent = nextMatch.p1 === pName ? nextMatch.p2 : nextMatch.p1;
+                if (opponent === '輪空') { content.innerHTML = `<div class="text-sm text-gray-500 mb-1">${matchType}</div><div class="text-red-600 font-black text-xl py-2">🎉 本輪輪空，直接晉級！</div>`; } 
+                else { content.innerHTML = `<div class="text-sm text-gray-500 mb-1">${matchType}</div><div class="flex items-center justify-center gap-4 text-xl"><span class="font-black text-red-600">${pName}</span><span class="text-gray-400 text-sm">VS</span><span class="font-black text-black">${opponent || '未定'}</span></div>`; }
+            } else { content.innerHTML = `<div class="text-gray-600 font-bold">目前沒有進行中的賽程。請留意大會公告！</div>`; }
+        }
+
+        window.updateScoreState = function(type, idx1, idx2, key, val) {
+            let s = JSON.parse(JSON.stringify(window.globalState));
+            if (type === 'g_m') {
+                s.groups[idx1].matches[idx2][key] = Math.max(0, s.groups[idx1].matches[idx2][key] + val);
+                recalculateGroupStandings(s, idx1);
+            }
+            else if (type === 'k_m') {
+                s.knockout[idx1].matches[idx2][key] = Math.max(0, s.knockout[idx1].matches[idx2][key] + val);
+                const m = s.knockout[idx1].matches[idx2];
+                let winner = ''; let loser = '';
+                if (m.s1 > m.s2) { winner = m.p1; loser = m.p2; }
+                else if (m.s2 > m.s1) { winner = m.p2; loser = m.p1; }
+                
+                if (winner !== '') {
+                    advanceWinner(s, idx1, idx2, winner, loser);
+                    checkAndProcessByes(s);
+                }
+            }
+            else if (type === 'g_p') {
+                if(key=='scoreDiff') s.groups[idx1].players[idx2][key] += val;
+                else s.groups[idx1].players[idx2][key] = Math.max(0, s.groups[idx1].players[idx2][key] + val);
+            }
+            else if (type === 'g_r') s.groups[idx1].players[idx2][key] = val;
+            else if (type === 'k_n') s.knockout[idx1].matches[idx2][key] = val;
+            
+            saveState(s);
+        }
+
+        function recalculateGroupStandings(s, gIdx) {
+            s.groups[gIdx].players.forEach(p => { p.w = 0; p.l = 0; p.scoreDiff = 0; p.rank = '-'; });
+            s.groups[gIdx].matches.forEach(m => {
+                if (m.s1 === 0 && m.s2 === 0) return; 
+                let p1Obj = s.groups[gIdx].players.find(x => x.name === m.p1);
+                let p2Obj = s.groups[gIdx].players.find(x => x.name === m.p2);
+                if (p1Obj && p2Obj) {
+                    p1Obj.scoreDiff += (m.s1 - m.s2); p2Obj.scoreDiff += (m.s2 - m.s1);
+                    if (m.s1 > m.s2) { p1Obj.w += 1; p2Obj.l += 1; } 
+                    else if (m.s2 > m.s1) { p2Obj.w += 1; p1Obj.l += 1; }
+                }
+            });
+            let rankSort = [...s.groups[gIdx].players].sort((a, b) => {
+                if (b.w !== a.w) return b.w - a.w; 
+                return b.scoreDiff - a.scoreDiff;
+            });
+            s.groups[gIdx].players.forEach(p => {
+                let finalIdx = rankSort.findIndex(x => x.name === p.name); 
+                p.rank = finalIdx + 1;
+            });
+        }
+
+        async function saveState(s) {
+            try { await setDoc(window.docRef, s); } catch(e) { console.error("儲存失敗", e); }
+        }
+
+        /* ⚔️ 比分快速增減控制器 (支持直接點擊大數字快速 +1) ⚔️ */
+        window.addSbScore = function(p, pts) {
+            if (sbGameOver && pts > 0) return;
+            sbScores[p] = Math.max(0, sbScores[p] + pts);
+            let scoreEl = document.getElementById(`sb-score-${p}`);
+            scoreEl.innerText = sbScores[p];
+            
+            scoreEl.classList.remove('scale-105'); 
+            void scoreEl.offsetWidth; 
+            scoreEl.classList.add('scale-105');
+
+            // Flash the player card green on point increase
+            if (pts > 0) {
+                let cardEl = scoreEl.closest('.sb-player-card');
+                if (cardEl) {
+                    cardEl.classList.remove('score-changed');
+                    void cardEl.offsetWidth;
+                    cardEl.classList.add('score-changed');
+                }
+            }
+            
+            if (pts > 0) checkSbWinner();
+        }
+        
+        window.resetSbPlayer = function(p) { 
+            sbScores[p] = 0; 
+            document.getElementById(`sb-score-${p}`).innerText = "0"; 
+        }
+        
+        window.resetAllAndCloseSbVictory = function() {
+            sbScores = { 1: 0, 2: 0 };
+            document.getElementById('sb-score-1').innerText = "0"; 
+            document.getElementById('sb-score-2').innerText = "0";
+            document.getElementById('sb-victory-screen').classList.remove('active');
+            sbGameOver = false;
+        }
+
+        // 修改點：手動儲存目前計分並返回主賽事（非強迫達到最高分數）
+        window.submitAndCloseSbVictory = async function() {
+            if (currentLoadedMatchContext && window.globalState) {
+                let s = JSON.parse(JSON.stringify(window.globalState));
+                const ctx = currentLoadedMatchContext;
+                
+                if (ctx.type === 'group') {
+                    let targetMatch = s.groups[ctx.gIdx].matches[ctx.mIdx];
+                    targetMatch.s1 = sbScores[1]; targetMatch.s2 = sbScores[2];
+                    recalculateGroupStandings(s, ctx.gIdx);
+
+                } else if (ctx.type === 'knockout') {
+                    let targetCol = s.knockout[ctx.cIdx];
+                    let targetMatch = targetCol.matches[ctx.mIdx];
+                    targetMatch.s1 = sbScores[1]; targetMatch.s2 = sbScores[2];
+                    
+                    let winner = ''; let loser = '';
+                    if (sbScores[1] > sbScores[2]) { winner = targetMatch.p1; loser = targetMatch.p2; } 
+                    else if (sbScores[2] > sbScores[1]) { winner = targetMatch.p2; loser = targetMatch.p1; }
+                    
+                    if (winner !== '') {
+                        advanceWinner(s, ctx.cIdx, ctx.mIdx, winner, loser);
+                        checkAndProcessByes(s);
+                    }
+                }
+                await setDoc(window.docRef, s);
+            }
+            currentLoadedMatchContext = null;
+            
+            const btnScore = document.getElementById('tab-btn-score');
+            if (btnScore) {
+                btnScore.classList.add('hidden');
+            }
+            
+            resetAllAndCloseSbVictory();
+            window.switchTab('main');
+        }
+
+        // 修改點：完全不儲存當前點數直接安全返回（誤觸、臨時取消）
+        window.exitScoreboardWithoutSaving = function() {
+            currentLoadedMatchContext = null;
+            const btnScore = document.getElementById('tab-btn-score');
+            if (btnScore) {
+                btnScore.classList.add('hidden');
+            }
+            resetAllAndCloseSbVictory();
+            window.switchTab('main');
+        }
+
+        window.checkSbWinner = function() {
+            let target = parseInt(document.getElementById('sb-winCondition').value);
+            let screen = document.getElementById('sb-victory-screen');
+            if (sbScores[1] >= target) {
+                sbGameOver = true; 
+                document.getElementById('sb-winner-name').innerText = document.getElementById('sb-name-1').value; 
+                screen.classList.add('active');
+            } else if (sbScores[2] >= target) {
+                sbGameOver = true; 
+                document.getElementById('sb-winner-name').innerText = document.getElementById('sb-name-2').value; 
+                screen.classList.add('active');
+            }
+        }
+
+        window.showModal = function(msg) {
+            document.getElementById('modal-msg').innerText = msg;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+        
+        window.closeModal = function() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+        
+        window.logout = function() {
+            localStorage.removeItem(`role_${appId}_${tournamentId}`);
+            window.userRole = null;
+            renderApp();
+        }
+
+        // Firebase Settings helper methods
+        window.openSettingsModal = function() {
+            document.getElementById('cfg-apiKey').value = firebaseConfig.apiKey || '';
+            document.getElementById('cfg-authDomain').value = firebaseConfig.authDomain || '';
+            document.getElementById('cfg-projectId').value = firebaseConfig.projectId || '';
+            document.getElementById('cfg-storageBucket').value = firebaseConfig.storageBucket || '';
+            document.getElementById('cfg-messagingSenderId').value = firebaseConfig.messagingSenderId || '';
+            document.getElementById('cfg-appId').value = firebaseConfig.appId || '';
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        window.closeSettingsModal = function() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        window.saveFirebaseConfig = function() {
+            const config = {
+                apiKey: document.getElementById('cfg-apiKey').value.trim(),
+                authDomain: document.getElementById('cfg-authDomain').value.trim(),
+                projectId: document.getElementById('cfg-projectId').value.trim(),
+                storageBucket: document.getElementById('cfg-storageBucket').value.trim(),
+                messagingSenderId: document.getElementById('cfg-messagingSenderId').value.trim(),
+                appId: document.getElementById('cfg-appId').value.trim()
+            };
+            
+            if (!config.apiKey || !config.projectId || !config.appId) {
+                alert("API Key, Project ID 與 App ID 為必填欄位！");
+                return;
+            }
+            
+            localStorage.setItem('milo_firebase_config', JSON.stringify(config));
+            alert("Firebase 連線設定已更新，網頁即將重載！");
+            window.location.reload();
+        }
+
+        window.resetFirebaseConfig = function() {
+            localStorage.removeItem('milo_firebase_config');
+            alert("已還原為公用預設伺服器，網頁即將重載！");
+            window.location.reload();
+        }
+
+        // Copy Share Link helper
+        window.copyShareLink = function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('t', tournamentId);
+            url.hash = ''; // Clear hash to prevent duplicate states
+            
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                showModal("📋 賽程分享連結已複製到剪貼簿！可直接傳給參賽者。");
+            }).catch(() => {
+                showModal("複製失敗，請手動複製網址：" + url.toString());
+            });
+        }
+
+        window.onload = function() {
+            init();
+            
+            // 手動註冊 Tab 事件，完美保障 module 與 classList 的正常運作
+            document.getElementById('tab-btn-main').addEventListener('click', () => switchTab('main'));
+            document.getElementById('tab-btn-score').addEventListener('click', () => switchTab('score'));
+
+            const confirmBtn = document.getElementById('auth-confirm-btn');
+            if(confirmBtn) {
+                confirmBtn.onclick = function(e) {
+                    e.preventDefault(); 
+                    verifyAndExecuteAction();
+                };
+            }
+        };
+    </script>
+</body>
+</html>
