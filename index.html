@@ -325,7 +325,6 @@
         </div>
 
         <div class="flex gap-2 items-center">
-            <button class="ch-btn px-3 py-1.5 text-sm bg-white" onclick="openSettingsModal()" id="settings-btn" title="設定 Firebase 伺服器">⚙️ 設定</button>
             <button class="ch-btn px-4 py-1.5 text-sm" onclick="toggleFullScreen()" id="fs-btn">🔲 全螢幕</button>
             <div id="user-info" class="text-sm hidden items-center">
                 <span id="role-badge" class="px-3 py-1 border-2 border-black rounded-lg text-xs font-black mr-2"></span>
@@ -526,46 +525,7 @@
         </div>
     </div>
 
-    <!-- ⚙️ Firebase 設定彈窗 -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[450] hidden">
-        <div class="bg-[#f4ecd2] border-4 border-black p-6 rounded-2xl max-w-md w-full mx-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div class="text-[#cc3333] font-black text-2xl mb-2 text-center tracking-wider" style="-webkit-text-stroke: 1px black;">⚙️ Firebase 連線設定</div>
-            <p class="text-xs text-gray-700 font-bold mb-4 text-center">您可以設定專屬的 Firebase 資料庫以託管獨立賽程，留空則自動還原為公用伺服器。</p>
-            <div class="flex flex-col gap-2.5 text-left mb-6 max-h-[300px] overflow-y-auto pr-1">
-                <div>
-                    <label class="text-xs text-black font-black block mb-0.5">API Key</label>
-                    <input type="text" id="cfg-apiKey" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="AIzaSy...">
-                </div>
-                <div>
-                    <label class="text-xs text-black font-black block mb-0.5">Auth Domain</label>
-                    <input type="text" id="cfg-authDomain" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="milocup-live.firebaseapp.com">
-                </div>
-                <div>
-                    <label class="text-xs text-black font-black block mb-0.5">Project ID</label>
-                    <input type="text" id="cfg-projectId" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="milocup-live">
-                </div>
-                <div>
-                    <label class="text-xs text-black font-black block mb-0.5">Storage Bucket</label>
-                    <input type="text" id="cfg-storageBucket" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="milocup-live.firebasestorage.app">
-                </div>
-                <div>
-                    <label class="text-xs text-black font-black block mb-0.5">Messaging Sender ID</label>
-                    <input type="text" id="cfg-messagingSenderId" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="988514415331">
-                </div>
-                <div>
-                    <label class="text-xs text-black font-black block mb-0.5">App ID</label>
-                    <input type="text" id="cfg-appId" class="w-full p-2.5 rounded-xl border-3 border-black text-black text-xs bg-white font-bold" placeholder="1:988514415331:web:...">
-                </div>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="closeSettingsModal()" class="flex-1 border-3 border-black bg-white text-black py-2 rounded-xl text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">取消</button>
-                <button onclick="saveFirebaseConfig()" class="flex-1 bg-green-500 text-white border-3 border-black py-2 rounded-xl text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">儲存並重載</button>
-            </div>
-            <div class="mt-4 text-center">
-                <button onclick="resetFirebaseConfig()" class="text-xs text-red-600 underline font-black">還原為公用預設伺服器</button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- ℹ️ 大會提示訊息彈窗 -->
     <div id="custom-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[300] hidden">
@@ -580,7 +540,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const defaultFirebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyDdMAx7dk55c_6z3alQenCG-FTONk0TkPY",
             authDomain: "milocup-live.firebaseapp.com",
             projectId: "milocup-live",
@@ -588,16 +548,6 @@
             messagingSenderId: "988514415331",
             appId: "1:988514415331:web:de2f269acbc03b12070bd6"
         };
-
-        let firebaseConfig = defaultFirebaseConfig;
-        try {
-            const savedConfig = localStorage.getItem('milo_firebase_config');
-            if (savedConfig) {
-                firebaseConfig = JSON.parse(savedConfig);
-            }
-        } catch (e) {
-            console.error("Failed to load custom Firebase config", e);
-        }
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -1028,27 +978,86 @@
         }
 
         function generateSingleElimination(players) {
-            let cols = []; let numPlayers = players.length; let bracketSize = Math.pow(2, Math.ceil(Math.log2(numPlayers))); if (bracketSize < 2) bracketSize = 2;
-            let numRounds = Math.log2(bracketSize); let currentPlayers = [...players]; while(currentPlayers.length < bracketSize) currentPlayers.push('輪空'); currentPlayers.sort(() => Math.random() - 0.5); 
+            let cols = []; 
+            let numPlayers = players.length; 
+            
+            // Calculate bracket size (next power of 2) robustly without floats
+            let bracketSize = 2;
+            while (bracketSize < numPlayers) {
+                bracketSize *= 2;
+            }
+            
+            let numRounds = Math.round(Math.log2(bracketSize)); 
+            let currentPlayers = [...players]; 
+            while(currentPlayers.length < bracketSize) currentPlayers.push('輪空'); 
+            currentPlayers.sort(() => Math.random() - 0.5); 
+            
             let roundTitles = [];
             for(let i=0; i<numRounds; i++) {
-                let mCount = bracketSize / Math.pow(2, i + 1); if (mCount === 1) roundTitles.push('Finals (決賽)'); else if (mCount === 2) roundTitles.push('Semi-Finals (四強)'); else if (mCount === 4) roundTitles.push('Quarter-Finals (八強)'); else roundTitles.push(`Round ${i+1} (${mCount*2}強)`);
+                let mCount = bracketSize / Math.pow(2, i + 1); 
+                if (mCount === 1) roundTitles.push('Finals (決賽)'); 
+                else if (mCount === 2) roundTitles.push('Semi-Finals (四強)'); 
+                else if (mCount === 4) roundTitles.push('Quarter-Finals (八強)'); 
+                else roundTitles.push(`Round ${i+1} (${mCount*2}強)`);
             }
+            
             let matchIdCounter = 1;
             for(let r=0; r<numRounds; r++) {
-                let matchesInRound = bracketSize / Math.pow(2, r + 1); let roundMatches = [];
+                let matchesInRound = bracketSize / Math.pow(2, r + 1); 
+                let roundMatches = [];
+                let nextRoundStartId = matchIdCounter + matchesInRound;
+                
                 for(let m=0; m<matchesInRound; m++) {
-                    let isFinal = (r === numRounds - 1); let title = isFinal ? '🥇 冠軍戰' : `Match ${matchIdCounter}`; let p1 = '', p2 = '', p1Seed = '', p2Seed = '';
+                    let isFinal = (r === numRounds - 1); 
+                    let title = isFinal ? '🥇 冠軍戰' : `Match ${matchIdCounter}`; 
+                    let p1 = '', p2 = '', p1Seed = '', p2Seed = '';
                     let loserMatchId = null;
                     if (r === numRounds - 2) loserMatchId = `MBronze`;
 
-                    if (r === 0) { p1 = currentPlayers[m*2]; p2 = currentPlayers[m*2 + 1]; p1Seed = `隨機排籤`; p2Seed = `隨機排籤`; } 
-                    else { let prevM1 = cols[r-1].matches[m*2].id; let prevM2 = cols[r-1].matches[m*2 + 1].id; p1Seed = `勝 ${prevM1}`; p2Seed = `勝 ${prevM2}`; }
+                    if (r === 0) { 
+                        p1 = currentPlayers[m*2]; 
+                        p2 = currentPlayers[m*2 + 1]; 
+                        p1Seed = `隨機排籤`; 
+                        p2Seed = `隨機排籤`; 
+                    } else { 
+                        let prevM1 = cols[r-1].matches[m*2].id; 
+                        let prevM2 = cols[r-1].matches[m*2 + 1].id; 
+                        p1Seed = `勝 ${prevM1}`; 
+                        p2Seed = `勝 ${prevM2}`; 
+                    }
                     
-                    roundMatches.push({ id: `M${matchIdCounter}`, title: title, p1: p1, p2: p2, s1: 0, s2: 0, p1Seed: p1Seed, p2Seed: p2Seed, isFinal: isFinal, nextMatchId: isFinal ? null : `M${Math.ceil(matchIdCounter/2) + matchesInRound}`, loserMatchId: loserMatchId }); matchIdCounter++;
-                } cols.push({ title: roundTitles[r], matches: roundMatches });
-                if (r === numRounds - 1) cols[r].matches.push({ id: `MBronze`, title: '🥉 季軍戰', p1: '', p2: '', s1: 0, s2: 0, p1Seed: '敗 準決賽', p2Seed: '敗 準決賽', isBronze: true });
-            } return cols;
+                    roundMatches.push({ 
+                        id: `M${matchIdCounter}`, 
+                        title: title, 
+                        p1: p1, 
+                        p2: p2, 
+                        s1: 0, 
+                        s2: 0, 
+                        p1Seed: p1Seed, 
+                        p2Seed: p2Seed, 
+                        isFinal: isFinal, 
+                        nextMatchId: isFinal ? null : `M${nextRoundStartId + Math.floor(m / 2)}`, 
+                        loserMatchId: loserMatchId 
+                    }); 
+                    matchIdCounter++;
+                } 
+                cols.push({ title: roundTitles[r], matches: roundMatches });
+                
+                if (r === numRounds - 1) {
+                    cols[r].matches.push({ 
+                        id: `MBronze`, 
+                        title: '🥉 季軍戰', 
+                        p1: '', 
+                        p2: '', 
+                        s1: 0, 
+                        s2: 0, 
+                        p1Seed: '敗 準決賽', 
+                        p2Seed: '敗 準決賽', 
+                        isBronze: true 
+                    });
+                }
+            } 
+            return cols;
         }
 
         function executeGenerateTournament() {
@@ -1479,46 +1488,7 @@
             renderApp();
         }
 
-        // Firebase Settings helper methods
-        window.openSettingsModal = function() {
-            document.getElementById('cfg-apiKey').value = firebaseConfig.apiKey || '';
-            document.getElementById('cfg-authDomain').value = firebaseConfig.authDomain || '';
-            document.getElementById('cfg-projectId').value = firebaseConfig.projectId || '';
-            document.getElementById('cfg-storageBucket').value = firebaseConfig.storageBucket || '';
-            document.getElementById('cfg-messagingSenderId').value = firebaseConfig.messagingSenderId || '';
-            document.getElementById('cfg-appId').value = firebaseConfig.appId || '';
-            document.getElementById('settings-modal').classList.remove('hidden');
-        }
 
-        window.closeSettingsModal = function() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
-        window.saveFirebaseConfig = function() {
-            const config = {
-                apiKey: document.getElementById('cfg-apiKey').value.trim(),
-                authDomain: document.getElementById('cfg-authDomain').value.trim(),
-                projectId: document.getElementById('cfg-projectId').value.trim(),
-                storageBucket: document.getElementById('cfg-storageBucket').value.trim(),
-                messagingSenderId: document.getElementById('cfg-messagingSenderId').value.trim(),
-                appId: document.getElementById('cfg-appId').value.trim()
-            };
-            
-            if (!config.apiKey || !config.projectId || !config.appId) {
-                alert("API Key, Project ID 與 App ID 為必填欄位！");
-                return;
-            }
-            
-            localStorage.setItem('milo_firebase_config', JSON.stringify(config));
-            alert("Firebase 連線設定已更新，網頁即將重載！");
-            window.location.reload();
-        }
-
-        window.resetFirebaseConfig = function() {
-            localStorage.removeItem('milo_firebase_config');
-            alert("已還原為公用預設伺服器，網頁即將重載！");
-            window.location.reload();
-        }
 
         // Copy Share Link helper
         window.copyShareLink = function() {
