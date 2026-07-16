@@ -1628,9 +1628,10 @@
                     const disabledStr = isAdmin ? '' : 'disabled';
                     const activeClass = c.active ? 'text-black' : 'text-gray-400 bg-gray-100 border-dashed opacity-60';
                     const winnerBadge = isWinner ? '<span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-lg">已中獎</span>' : '';
+                    const cursorClass = isAdmin ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed';
                     
                     return `
-                        <label class="flex items-center justify-between p-2.5 bg-white border-2 border-black rounded-xl font-bold cursor-pointer transition-all hover:bg-gray-50 ${activeClass}">
+                        <label class="flex items-center justify-between p-2.5 bg-white border-2 border-black rounded-xl font-bold transition-all ${cursorClass} ${activeClass}">
                             <div class="flex items-center gap-2">
                                 <span>${c.name}</span>
                                 ${winnerBadge}
