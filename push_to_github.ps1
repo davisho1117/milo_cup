@@ -21,7 +21,7 @@ try {
 
 # If git is installed, offer to run initialization
 if ($gitInstalled) {
-    $choice = Read-Host "是否要在目前目錄初始化 Git 並設定遠端端點到 https://github.com/davisho1117-bot/milo_cup.git？ (Y/N)"
+    $choice = Read-Host "是否要在目前目錄初始化 Git 並設定遠端端點到 https://github.com/davisho1117/milo_cup.git？ (Y/N)"
     if ($choice -eq "Y" -or $choice -eq "y") {
         Write-Host "1. 初始化 Git 儲存庫..." -ForegroundColor Cyan
         git init
@@ -42,7 +42,7 @@ if ($gitInstalled) {
         }
         
         Write-Host "5. 設定新 GitHub 遠端路徑..." -ForegroundColor Cyan
-        git remote add origin https://github.com/davisho1117-bot/milo_cup.git
+        git remote add origin https://github.com/davisho1117/milo_cup.git
         
         Write-Host ""
         Write-Host "✨ 本地 Git 初始化設定完成！" -ForegroundColor Green
@@ -63,7 +63,7 @@ if ($gitInstalled) {
     Write-Host "   git add ." -ForegroundColor Yellow
     Write-Host "   git commit -m 'feat: migrate and enhance Milo Cup Scheduler'" -ForegroundColor Yellow
     Write-Host "   git branch -M main" -ForegroundColor Yellow
-    Write-Host "   git remote add origin https://github.com/davisho1117-bot/milo_cup.git" -ForegroundColor Yellow
+    Write-Host "   git remote add origin https://github.com/davisho1117/milo_cup.git" -ForegroundColor Yellow
     Write-Host "   git push -u origin main" -ForegroundColor Yellow
 }
 

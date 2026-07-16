@@ -48,13 +48,13 @@
 
 ---
 
-## 🚀 搬遷到您的新 GitHub (`davisho1117-bot`)
+## 🚀 搬遷到您的新 GitHub (`davisho1117`)
 
 我們已經為您準備好自動化 Git 設定腳本。請按照以下方式將這份程式碼推送到您的 GitHub：
 
 ### 方法 A：使用 PowerShell 腳本（一鍵設定）
 1. 在 Windows 資料夾中，對 [push_to_github.ps1](push_to_github.ps1) 點選右鍵，選擇**使用 PowerShell 執行**。
-2. 照著畫面提示完成設定，它會為您初始化 Git、加入檔案、建立 Commit 並綁定遠端端點：`https://github.com/davisho1117-bot/milo_cup.git`。
+2. 照著畫面提示完成設定，它會為您初始化 Git、加入檔案、建立 Commit 並綁定遠端端點：`https://github.com/davisho1117/milo_cup.git`。
 3. 腳本完成後，只需在您的終端機輸入：
    ```bash
    git push -u origin main
@@ -76,7 +76,7 @@ git commit -m "feat: migrate and enhance Milo Cup Scheduler web app"
 git branch -M main
 
 # 5. 設定您的新 GitHub 遠端儲存庫
-git remote add origin https://github.com/davisho1117-bot/milo_cup.git
+git remote add origin https://github.com/davisho1117/milo_cup.git
 
 # 6. 推送代碼至 GitHub (會彈出視窗要求登入授權)
 git push -u origin main
@@ -88,12 +88,12 @@ git push -u origin main
 
 將代碼推送至您的 GitHub 儲存庫後，請照以下步驟開啟 GitHub Pages，讓所有人都能使用該網頁：
 
-1. 前往您的 GitHub 專案頁面：`https://github.com/davisho1117-bot/milo_cup`。
+1. 前往您的 GitHub 專案頁面：`https://github.com/davisho1117/milo_cup`。
 2. 點選上方的 **⚙️ Settings** (設定) 頁籤。
 3. 在左側選單中找到 **Pages**。
 4. 在 **Build and deployment** 下方的 **Source** 選擇 `Deploy from a branch`。
 5. 在 **Branch** 選單中，將其設定為 `main` 分支，並將目錄設定為 `/ (root)`，然後點選 **Save** (儲存)。
 6. 等待約 1~2 分鐘後，刷新頁面。GitHub 會在上方顯示您的網頁連結，格式通常為：
-   👉 **`https://davisho1117-bot.github.io/milo_cup/`**
+   👉 **`https://davisho1117.github.io/milo_cup/`**
 
 現在，只需將該網址發送給參賽者，大會就能順暢舉行了！
