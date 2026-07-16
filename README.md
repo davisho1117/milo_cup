@@ -48,20 +48,9 @@
 
 ---
 
-## 🚀 搬遷到您的新 GitHub (`davisho1117`)
+## 🚀 如何將後續修改推送到您的 GitHub
 
-我們已經為您準備好自動化 Git 設定腳本。請按照以下方式將這份程式碼推送到您的 GitHub：
-
-### 方法 A：使用 PowerShell 腳本（一鍵設定）
-1. 在 Windows 資料夾中，對 [push_to_github.ps1](push_to_github.ps1) 點選右鍵，選擇**使用 PowerShell 執行**。
-2. 照著畫面提示完成設定，它會為您初始化 Git、加入檔案、建立 Commit 並綁定遠端端點：`https://github.com/davisho1117/milo_cup.git`。
-3. 腳本完成後，只需在您的終端機輸入：
-   ```bash
-   git push -u origin main
-   ```
-
-### 方法 B：手動指令逐步執行
-在終端機中，切換到本資料夾並依序執行：
+在終端機中，切換到本資料夾並依序執行以下指令，即可同步更新到 GitHub：
 ```bash
 # 1. 初始化 Git
 git init
