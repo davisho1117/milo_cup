@@ -540,7 +540,9 @@
                 <select id="sb-winCondition" onchange="checkSbWinner()" class="border-2 border-black rounded-lg px-2 py-0.5 font-bold text-xs bg-white text-black">
                     <option value="4" selected>先得 4 分</option>
                     <option value="5">先得 5 分</option>
+                    <option value="6">先得 6 分</option>
                     <option value="7">先得 7 分</option>
+                    <option value="8">先得 8 分</option>
                 </select>
             </div>
 
@@ -805,7 +807,7 @@
                     targetScore = window.globalState.playoffTargetScore || 5;
                 }
                 const winSelect = document.getElementById('sb-winCondition');
-                if (winSelect) winSelect.value = targetScore;
+                if (winSelect) winSelect.value = String(targetScore);
             }
 
             const btnScore = document.getElementById('tab-btn-score');
