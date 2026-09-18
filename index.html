@@ -376,17 +376,71 @@
             <div class="flex flex-col gap-2 mb-6">
                 <label class="text-black font-black">2. 選擇大會賽制</label>
                 <select id="tournamentFormat" class="p-3 rounded-xl border-3 border-black font-bold bg-white" onchange="toggleGroupCount()">
-                    <option value="group">🔥 小組賽 + 淘汰賽</option>
+                    <option value="group">🔥 小組賽 + 複賽/決賽</option>
                     <option value="knockout">⚔️ 直接單淘汰賽 (自動配籤)</option>
                 </select>
             </div>
-            <div class="flex flex-col gap-2 mb-6" id="groupCountContainer">
-                <label class="text-black font-black">3. 預賽要分成幾組？</label>
-                <select id="groupCount" class="p-3 rounded-xl border-3 border-black font-bold bg-white">
-                    <option value="2">2 組</option><option value="3">3 組</option><option value="4">4 組</option>
-                    <option value="5">5 組</option><option value="6">6 組</option><option value="7">7 組</option>
-                    <option value="8" selected>8 組</option>
-                </select>
+            <div class="flex flex-col gap-4 mb-6" id="groupCountContainer">
+                <div class="flex flex-col gap-2">
+                    <label class="text-black font-black">3. 預賽要分成幾組？</label>
+                    <select id="groupCount" class="p-3 rounded-xl border-3 border-black font-bold bg-white">
+                        <option value="2">2 組</option><option value="3" selected>3 組</option><option value="4">4 組</option>
+                        <option value="5">5 組</option><option value="6">6 組</option><option value="7">7 組</option>
+                        <option value="8">8 組</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-yellow-50 p-4 border-2 border-black rounded-xl">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-black font-black text-sm">4. 每組取幾名晉級？</label>
+                        <select id="advancingPerGroup" class="p-2.5 rounded-lg border-2 border-black font-bold bg-white text-sm">
+                            <option value="1">1 人 (冠軍晉級)</option>
+                            <option value="2" selected>2 人 (前2名晉級 - 預設)</option>
+                            <option value="3">3 人 (前3名晉級)</option>
+                            <option value="4">4 人 (前4名晉級)</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-black font-black text-sm">5. 決賽/複賽 賽制架構</label>
+                        <select id="playoffFormat" class="p-2.5 rounded-lg border-2 border-black font-bold bg-white text-sm">
+                            <option value="standard" selected>🌳 標準單淘汰賽 (含季軍戰)</option>
+                            <option value="six_to_three">🔥 6強對決 ➔ 3強決賽單循環 (0輪空)</option>
+                            <option value="full_rr">👑 晉級者全單循環大決戰 (總積分榜)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-row items-center gap-2 px-1">
+                    <input type="checkbox" id="avoidSameGroup" class="w-5 h-5 accent-red-600 border-2 border-black rounded cursor-pointer" checked>
+                    <label for="avoidSameGroup" class="text-black font-bold text-sm cursor-pointer">🛡️ 淘汰賽/複賽首輪自動避開預賽同組對手</label>
+                </div>
+            </div>
+
+            <!-- 比賽目標得分設定 -->
+            <div class="flex flex-col gap-3 mb-6 bg-yellow-50 p-4 border-2 border-black rounded-xl">
+                <label class="text-black font-black">🎯 比賽勝負目標得分設定</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-700 block mb-1">預賽/小組賽得分目標</label>
+                        <select id="groupTargetScore" class="w-full p-2 rounded-lg border-2 border-black font-bold bg-white text-sm">
+                            <option value="4" selected>先得 4 分勝 (標準)</option>
+                            <option value="5">先得 5 分勝</option>
+                            <option value="6">先得 6 分勝</option>
+                            <option value="7">先得 7 分勝 (大決賽)</option>
+                            <option value="8">先得 8 分勝</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-700 block mb-1">複賽/決賽得分目標</label>
+                        <select id="playoffTargetScore" class="w-full p-2 rounded-lg border-2 border-black font-bold bg-white text-sm">
+                            <option value="4">先得 4 分勝</option>
+                            <option value="5" selected>先得 5 分勝 (標準決賽)</option>
+                            <option value="6">先得 6 分勝</option>
+                            <option value="7">先得 7 分勝 (高階決賽)</option>
+                            <option value="8">先得 8 分勝</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <button onclick="triggerAuthModal('create')" class="w-full ch-btn bg-[#cc3333] text-white p-4 text-xl">🚀 產生並發布賽程</button>
         </div>
@@ -743,6 +797,17 @@
             currentLoadedMatchContext = matchContext; 
             resetAllAndCloseSbVictory();
             
+            if (matchContext && window.globalState) {
+                let targetScore = 4;
+                if (matchContext.type === 'group') {
+                    targetScore = window.globalState.groupTargetScore || 4;
+                } else {
+                    targetScore = window.globalState.playoffTargetScore || 5;
+                }
+                const winSelect = document.getElementById('sb-winCondition');
+                if (winSelect) winSelect.value = targetScore;
+            }
+
             const btnScore = document.getElementById('tab-btn-score');
             if (btnScore) {
                 btnScore.classList.remove('hidden');
@@ -878,17 +943,19 @@
         }
 
         /* 🏆 自適應多層淘汰對戰配對引擎 🏆 */
-        function generateKnockoutStructure(numGroups) {
-            const totalAdvancing = numGroups * 2;
-            let bracketSize = 2;
-            while (bracketSize < totalAdvancing) { bracketSize *= 2; }
+        function generateKnockoutStructure(numGroups, advancingPerGroup = 2, customBracketSize = null) {
+            const totalAdvancing = numGroups * advancingPerGroup;
+            let bracketSize = customBracketSize || 2;
+            if (!customBracketSize) {
+                while (bracketSize < totalAdvancing) { bracketSize *= 2; }
+            }
             
             let cols = [];
             let config = getBracketConfig(bracketSize);
             
             let r1Matches = config.map(m => {
-                let p1Label = m.p1SeedIdx <= numGroups ? `第 ${m.p1SeedIdx} 順位 (小組#1)` : (m.p1SeedIdx <= 2 * numGroups ? `第 ${m.p1SeedIdx} 順位 (小組#2)` : '輪空');
-                let p2Label = m.p2SeedIdx <= numGroups ? `第 ${m.p2SeedIdx} 順位 (小組#1)` : (m.p2SeedIdx <= 2 * numGroups ? `第 ${m.p2SeedIdx} 順位 (小組#2)` : '輪空');
+                let p1Label = m.p1SeedIdx <= totalAdvancing ? `第 ${m.p1SeedIdx} 順位` : '輪空';
+                let p2Label = m.p2SeedIdx <= totalAdvancing ? `第 ${m.p2SeedIdx} 順位` : '輪空';
                 
                 return {
                     id: `ko_r1_${m.id}`,
@@ -1159,6 +1226,12 @@
         function executeGenerateTournament() {
             const text = document.getElementById('playerList').value; let players = text.split('\n').map(p => p.trim()).filter(p => p !== '');
             const format = document.getElementById('tournamentFormat').value; const numGroups = parseInt(document.getElementById('groupCount').value);
+            const advancingPerGroup = parseInt(document.getElementById('advancingPerGroup')?.value) || 2;
+            const playoffFormat = document.getElementById('playoffFormat')?.value || 'standard';
+            const groupTargetScore = parseInt(document.getElementById('groupTargetScore')?.value) || 4;
+            const playoffTargetScore = parseInt(document.getElementById('playoffTargetScore')?.value) || 5;
+            const avoidSameGroup = document.getElementById('avoidSameGroup')?.checked ?? true;
+
             if (players.length < 2) { showModal(`至少需要 2 名選手！`); return; }
             let groupsData = []; let knockoutData = [];
             if (format === 'group') {
@@ -1169,8 +1242,12 @@
                     let tempMatches = []; for (let i = 0; i < g.players.length; i++) for (let j = i + 1; j < g.players.length; j++) tempMatches.push({ p1: g.players[i].name, p2: g.players[j].name, s1: 0, s2: 0 });
                     g.matches = optimizeMatchOrder(tempMatches).map((m, idx) => ({ id: `g${g.id}_${idx+1}`, p1: m.p1, p2: m.p2, s1: 0, s2: 0 }));
                 });
-                knockoutData = generateKnockoutStructure(numGroups);
-            } else if (format === 'knockout') { knockoutData = generateSingleElimination(players); } 
+                if (playoffFormat === 'standard') {
+                    knockoutData = generateKnockoutStructure(numGroups, advancingPerGroup);
+                }
+            } else if (format === 'knockout') { 
+                knockoutData = generateSingleElimination(players); 
+            } 
 
             const raffleData = {
                 candidates: players.map(p => ({ name: p, active: true })),
@@ -1181,8 +1258,14 @@
                 players: players, 
                 format: format, 
                 numGroups: format==='group'?numGroups:0, 
+                advancingPerGroup: advancingPerGroup,
+                playoffFormat: playoffFormat,
+                groupTargetScore: groupTargetScore,
+                playoffTargetScore: playoffTargetScore,
+                avoidSameGroup: avoidSameGroup,
                 groups: groupsData, 
                 knockout: knockoutData,
+                playoffState: null,
                 raffle: raffleData
             };
             
@@ -1197,86 +1280,138 @@
             setDoc(window.docRef, { deleted: true }).then(() => { window.location.reload(); }).catch(() => { showModal("重置失敗"); });
         }
 
-        /* ⚔️ 小組排位全大會公平大排名與衝突避讓 ⚔️ */
+        /* ⚔️ 小組排位全大會公平大排名與決賽生成 ⚔️ */
         window.advanceGroupWinners = async function() {
             if (!window.globalState || !window.globalState.groups) return;
             let s = JSON.parse(JSON.stringify(window.globalState));
             
             const numGroups = s.numGroups;
-            const totalAdvancing = numGroups * 2;
-            let bracketSize = 2;
-            while (bracketSize < totalAdvancing) { bracketSize *= 2; }
+            const advancingPerGroup = s.advancingPerGroup || 2;
+            const playoffFormat = s.playoffFormat || 'standard';
+            const avoidSameGroup = s.avoidSameGroup !== false;
             
-            let winners = [];
-            let runnersUp = [];
+            // 依名次搜集出線選手 (Rank 1, Rank 2, Rank 3...)
+            let advancingTiers = Array.from({length: advancingPerGroup}, () => []);
             
             s.groups.forEach(g => {
-                let p1Obj = g.players.find(p => p.rank == "1" || p.rank == 1);
-                let p2Obj = g.players.find(p => p.rank == "2" || p.rank == 2);
+                let sortedGroupPlayers = [...g.players].sort((a, b) => {
+                    let rA = parseInt(a.rank) || 999;
+                    let rB = parseInt(b.rank) || 999;
+                    if (rA !== rB) return rA - rB;
+                    if (b.w !== a.w) return b.w - a.w;
+                    return b.scoreDiff - a.scoreDiff;
+                });
                 
-                if (!p1Obj || !p2Obj) {
-                    let backupSort = [...g.players].sort((a, b) => {
-                        if (b.w !== a.w) return b.w - a.w;
-                        return b.scoreDiff - a.scoreDiff;
-                    });
-                    if (backupSort[0]) p1Obj = backupSort[0];
-                    if (backupSort[1]) p2Obj = backupSort[1];
+                for (let r = 0; r < advancingPerGroup; r++) {
+                    if (sortedGroupPlayers[r]) {
+                        advancingTiers[r].push({
+                            name: sortedGroupPlayers[r].name,
+                            group: g.name,
+                            w: sortedGroupPlayers[r].w,
+                            scoreDiff: sortedGroupPlayers[r].scoreDiff,
+                            groupRank: r + 1
+                        });
+                    }
                 }
-                
-                if (p1Obj) winners.push({ name: p1Obj.name, group: g.name, w: p1Obj.w, scoreDiff: p1Obj.scoreDiff });
-                if (p2Obj) runnersUp.push({ name: p2Obj.name, group: g.name, w: p2Obj.w, scoreDiff: p2Obj.scoreDiff });
             });
             
             const sortPerformance = (a, b) => {
                 if (b.w !== a.w) return b.w - a.w;
                 return b.scoreDiff - a.scoreDiff;
             };
-            winners.sort(sortPerformance);
-            runnersUp.sort(sortPerformance);
+            
+            advancingTiers.forEach(tier => tier.sort(sortPerformance));
+            
+            let allAdvancing = [];
+            advancingTiers.forEach(tier => allAdvancing.push(...tier));
+            
+            if (allAdvancing.length === 0) {
+                showModal("無晉級選手，請確認預賽戰績！"); return;
+            }
+
+            // 模式 1：6強對決 ➔ 3強決賽單循環 (six_to_three)
+            if (playoffFormat === 'six_to_three') {
+                if (allAdvancing.length !== 6) {
+                    showModal(`💡 提示：「6強對決」模式建議 6 人晉級（目前有 ${allAdvancing.length} 人）。已自動依戰績排名前 6 名進入 6強對決！`);
+                    allAdvancing = allAdvancing.slice(0, 6);
+                }
+                
+                let p1 = allAdvancing[0], p2 = allAdvancing[1], p3 = allAdvancing[2];
+                let p4 = allAdvancing[3], p5 = allAdvancing[4], p6 = allAdvancing[5];
+
+                // 同組避讓
+                if (avoidSameGroup && p1 && p2 && p3 && p4 && p5 && p6) {
+                    if (p1.group === p6.group) { let tmp = p6; p6 = p5; p5 = tmp; }
+                    if (p2.group === p5.group) { let tmp = p5; p5 = p4; p4 = tmp; }
+                    if (p3.group === p4.group && p3.group !== p5.group) { let tmp = p4; p4 = p5; p5 = tmp; }
+                }
+
+                s.playoffState = {
+                    mode: 'six_to_three',
+                    step: 1,
+                    pkMatches: [
+                        { id: 'pk_1', title: '⚔️ 6強複賽 PK 1', p1: p1.name, p2: p6.name, p1Seed: `${p1.group}組#${p1.groupRank}`, p2Seed: `${p6.group}組#${p6.groupRank}`, s1: 0, s2: 0 },
+                        { id: 'pk_2', title: '⚔️ 6強複賽 PK 2', p1: p2.name, p2: p5.name, p1Seed: `${p2.group}組#${p2.groupRank}`, p2Seed: `${p5.group}組#${p5.groupRank}`, s1: 0, s2: 0 },
+                        { id: 'pk_3', title: '⚔️ 6強複賽 PK 3', p1: p3.name, p2: p4.name, p1Seed: `${p3.group}組#${p3.groupRank}`, p2Seed: `${p4.group}組#${p4.groupRank}`, s1: 0, s2: 0 }
+                    ],
+                    finalRRMatches: null,
+                    finalRRTable: null
+                };
+                delete s.knockout;
+                await setDoc(window.docRef, s);
+                showModal("🔥 已成功生成 6強 PK 複賽賽程（0輪空）！完成 3 場對決後將自動展開【3強大決賽單循環】！");
+                return;
+            }
+
+            // 模式 2：晉級者全單循環大決戰 (full_rr)
+            if (playoffFormat === 'full_rr') {
+                let rrRawMatches = [];
+                for (let i = 0; i < allAdvancing.length; i++) {
+                    for (let j = i + 1; j < allAdvancing.length; j++) {
+                        rrRawMatches.push({ p1: allAdvancing[i].name, p2: allAdvancing[j].name, s1: 0, s2: 0 });
+                    }
+                }
+                s.playoffState = {
+                    mode: 'full_rr',
+                    players: allAdvancing.map(p => ({ name: p.name, group: p.group, w: 0, l: 0, scoreDiff: 0, rank: '-' })),
+                    matches: optimizeMatchOrder(rrRawMatches).map((m, idx) => ({ id: `frr_${idx+1}`, title: `🏆 全單循環 M${idx+1}`, p1: m.p1, p2: m.p2, s1: 0, s2: 0 }))
+                };
+                delete s.knockout;
+                await setDoc(window.docRef, s);
+                showModal("👑 已成功為所有晉級選手生成【全單循環大決戰】賽程！");
+                return;
+            }
+
+            // 模式 3：標準單淘汰賽 (standard)
+            const totalAdvancing = allAdvancing.length;
+            let bracketSize = 2;
+            while (bracketSize < totalAdvancing) { bracketSize *= 2; }
+            
+            s.knockout = generateKnockoutStructure(numGroups, advancingPerGroup, bracketSize);
+            delete s.playoffState;
             
             let seeds = Array(bracketSize + 1).fill('輪空');
-            for (let i = 0; i < winners.length; i++) {
-                seeds[i + 1] = winners[i]; 
-            }
-            for (let i = 0; i < runnersUp.length; i++) {
-                seeds[numGroups + i + 1] = runnersUp[i]; 
+            for (let i = 0; i < allAdvancing.length; i++) {
+                seeds[i + 1] = allAdvancing[i];
             }
             
             let config = getBracketConfig(bracketSize);
-            let maxAttempts = 100;
-            let attempts = 0;
-            let hasConflict = true;
-            
-            while (hasConflict && attempts < maxAttempts) {
-                hasConflict = false;
-                attempts++;
-                for (let m of config) {
-                    let p1 = seeds[m.p1SeedIdx];
-                    let p2 = seeds[m.p2SeedIdx];
-                    if (p1 && p2 && p1 !== '輪空' && p2 !== '輪空' && p1.group === p2.group) {
-                        hasConflict = true;
-                        let runnerUpIdx = m.p2SeedIdx; 
-                        
-                        let swapped = false;
-                        for (let targetIdx = numGroups + 1; targetIdx <= 2 * numGroups; targetIdx++) {
-                            if (targetIdx !== runnerUpIdx) {
-                                let targetPlayer = seeds[targetIdx];
-                                if (targetPlayer !== '輪空' && targetPlayer.group !== p1.group) {
-                                    let otherMatch = config.find(om => om.p1SeedIdx === targetIdx || om.p2SeedIdx === targetIdx);
-                                    let otherOpponentIdx = otherMatch.p1SeedIdx === targetIdx ? otherMatch.p2SeedIdx : otherMatch.p1SeedIdx;
-                                    let otherOpponent = seeds[otherOpponentIdx];
-                                    
-                                    if (otherOpponent === '輪空' || seeds[runnerUpIdx].group !== otherOpponent.group) {
-                                        let temp = seeds[runnerUpIdx];
-                                        seeds[runnerUpIdx] = seeds[targetIdx];
-                                        seeds[targetIdx] = temp;
-                                        swapped = true;
-                                        break;
-                                    }
+            if (avoidSameGroup && config) {
+                let maxAttempts = 100, attempts = 0, hasConflict = true;
+                while (hasConflict && attempts < maxAttempts) {
+                    hasConflict = false; attempts++;
+                    for (let m of config) {
+                        let p1 = seeds[m.p1SeedIdx], p2 = seeds[m.p2SeedIdx];
+                        if (p1 && p2 && p1 !== '輪空' && p2 !== '輪空' && p1.group === p2.group) {
+                            hasConflict = true;
+                            let targetIdx = m.p2SeedIdx;
+                            for (let swapCandidate = 2; swapCandidate <= totalAdvancing; swapCandidate++) {
+                                if (swapCandidate !== targetIdx && seeds[swapCandidate] !== '輪空' && seeds[swapCandidate].group !== p1.group) {
+                                    let temp = seeds[targetIdx]; seeds[targetIdx] = seeds[swapCandidate]; seeds[swapCandidate] = temp;
+                                    break;
                                 }
                             }
                         }
-                        if (swapped) break; 
                     }
                 }
             }
@@ -1285,21 +1420,14 @@
                 s.knockout[0].matches.forEach(m => {
                     let p1Obj = seeds[m.p1SeedIdx];
                     let p2Obj = seeds[m.p2SeedIdx];
-                    
                     m.p1 = p1Obj === '輪空' ? '輪空' : (p1Obj ? p1Obj.name : '');
                     m.p2 = p2Obj === '輪空' ? '輪空' : (p2Obj ? p2Obj.name : '');
-                    
-                    if (p1Obj && p1Obj !== '輪空') {
-                        m.p1Seed = `${p1Obj.group}組#${winners.some(w => w.name === p1Obj.name) ? '1' : '2'}`;
-                    }
-                    if (p2Obj && p2Obj !== '輪空') {
-                        m.p2Seed = `${p2Obj.group}組#${winners.some(w => w.name === p2Obj.name) ? '1' : '2'}`;
-                    }
+                    if (p1Obj && p1Obj !== '輪空') m.p1Seed = `${p1Obj.group}組#${p1Obj.groupRank}`;
+                    if (p2Obj && p2Obj !== '輪空') m.p2Seed = `${p2Obj.group}組#${p2Obj.groupRank}`;
                 });
-                
                 checkAndProcessByes(s);
                 await setDoc(window.docRef, s);
-                showModal("🎉 預賽勝出者已依戰績大排名公平分發！已自動避開首輪分組內戰，並完成輪空玩家自動晉級！");
+                showModal("🎉 預賽勝出者已依戰績公平帶入決賽樹狀圖！");
             }
         }
 
@@ -1328,7 +1456,6 @@
                         </tr>
                     `).join('');
 
-                    // 修改點：小組賽對戰紀錄中，為雙方選手都配備獨立的 [-] 與 [+] 加減分按鈕
                     let matchesHtml = g.matches.map((m, mIdx) => `
                         <div class="match-row p-2 flex items-center justify-between">
                             <div class="flex-1 text-right truncate pr-2 ${m.p1===window.userRole ? 'text-red-600 font-black':''}">${m.p1}</div>
@@ -1360,7 +1487,113 @@
                 gContainer.innerHTML = gHtml;
             }
 
-            if (s.knockout) {
+            // 渲染 6強對決 ➔ 3強單循環賽 或 全單循環賽
+            if (s.playoffState) {
+                kSection.classList.remove('hidden');
+                const ps = s.playoffState;
+                if (ps.mode === 'six_to_three') {
+                    kTitle.innerText = "🏆 6強PK對決 ➔ 3強決賽單循環";
+                    let html = `<div class="flex flex-col gap-6">`;
+                    
+                    // Step 1: 6強 PK 賽
+                    html += `<div class="bg-yellow-50 p-4 border-2 border-black rounded-xl"><h3 class="text-lg font-black text-[#cc3333] mb-3">⚔️ 第一階段：6強 PK 複賽 (0輪空)</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-4">`;
+                    ps.pkMatches.forEach((m, mIdx) => {
+                        html += `
+                            <div class="matchup border-2 border-black p-3 bg-white rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <div class="font-black text-xs text-gray-500 mb-2 flex justify-between"><span>${m.title}</span>${isAdmin ? `<button class="border border-black bg-amber-400 text-black px-1.5 py-0.5 text-[10px] font-bold rounded" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'pk', mIdx:${mIdx}})">⚔️ 計分</button>` : ''}</div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span class="font-black text-sm ${m.s1 > m.s2 ? 'text-red-600 font-bold':''}">${m.p1} (${m.p1Seed})</span>
+                                    <div class="flex items-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('pk_m', 0, ${mIdx}, 's1', -1)">-</button>`:''}<span class="score-box text-xs font-bold">${m.s1}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('pk_m', 0, ${mIdx}, 's1', 1)">+</button>`:''}</div>
+                                </div>
+                                <div class="flex justify-between items-center py-1 border-t border-gray-200">
+                                    <span class="font-black text-sm ${m.s2 > m.s1 ? 'text-red-600 font-bold':''}">${m.p2} (${m.p2Seed})</span>
+                                    <div class="flex items-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('pk_m', 0, ${mIdx}, 's2', -1)">-</button>`:''}<span class="score-box text-xs font-bold">${m.s2}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('pk_m', 0, ${mIdx}, 's2', 1)">+</button>`:''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div></div>`;
+
+                    // Step 2: 3強決賽單循環
+                    if (ps.finalRRMatches && ps.finalRRTable) {
+                        html += `<div class="bg-amber-100 p-4 border-2 border-black rounded-xl"><h3 class="text-xl font-black text-red-700 mb-3 text-center">🏆 第二階段：3強大決賽單循環賽</h3>`;
+                        
+                        // 3強榜單
+                        let rrRows = ps.finalRRTable.map((p, pIdx) => {
+                            let rankBadge = p.rank == 1 ? '🥇 冠軍' : (p.rank == 2 ? '🥈 亞軍' : (p.rank == 3 ? '🥉 季軍' : '-'));
+                            return `
+                                <tr>
+                                    <td class="font-black text-lg text-red-600">${rankBadge}</td>
+                                    <td class="font-black text-black text-base">${p.name}</td>
+                                    <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'w', -1)">-</button>`:''}<span>${p.w}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'w', 1)">+</button>`:''}</div></td>
+                                    <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'l', -1)">-</button>`:''}<span>${p.l}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'l', 1)">+</button>`:''}</div></td>
+                                    <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'scoreDiff', -1)">-</button>`:''}<span>${p.scoreDiff > 0 ? '+' + p.scoreDiff : p.scoreDiff}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'scoreDiff', 1)">+</button>`:''}</div></td>
+                                    <td>${isAdmin ? `<input type="text" class="w-12 text-center bg-white border border-black font-black text-red-600 text-sm rounded" value="${p.rank}" onchange="updateScoreState('frr_r', 0, ${pIdx}, 'rank', this.value)">` : `<span class="font-black text-red-600">${p.rank}</span>`}</td>
+                                </tr>
+                            `;
+                        }).join('');
+
+                        html += `<div class="overflow-x-auto mb-6 bg-white p-3 rounded-xl border-2 border-black"><table class="text-sm w-full text-center"><tr><th>名次</th><th>選手</th><th>勝</th><th>敗</th><th>得失分</th><th>排名調整</th></tr>${rrRows}</table></div>`;
+
+                        // 3強對決場次
+                        html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4">`;
+                        ps.finalRRMatches.forEach((m, mIdx) => {
+                            html += `
+                                <div class="matchup border-2 border-black p-3 bg-white rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                    <div class="font-black text-xs text-gray-500 mb-2 flex justify-between"><span>${m.title}</span>${isAdmin ? `<button class="border border-black bg-amber-400 text-black px-1.5 py-0.5 text-[10px] font-bold rounded" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'frr', mIdx:${mIdx}})">⚔️ 計分</button>` : ''}</div>
+                                    <div class="flex justify-between items-center py-1">
+                                        <span class="font-black text-sm ${m.s1 > m.s2 ? 'text-red-600 font-bold':''}">${m.p1}</span>
+                                        <div class="flex items-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's1', -1)">-</button>`:''}<span class="score-box text-xs font-bold">${m.s1}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's1', 1)">+</button>`:''}</div>
+                                    </div>
+                                    <div class="flex justify-between items-center py-1 border-t border-gray-200">
+                                        <span class="font-black text-sm ${m.s2 > m.s1 ? 'text-red-600 font-bold':''}">${m.p2}</span>
+                                        <div class="flex items-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's2', -1)">-</button>`:''}<span class="score-box text-xs font-bold">${m.s2}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's2', 1)">+</button>`:''}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div></div>`;
+                    }
+                    html += `</div>`;
+                    document.getElementById('knockout-container').innerHTML = html;
+                    document.getElementById('knockout-container').style.gridTemplateColumns = '1fr';
+                } else if (ps.mode === 'full_rr') {
+                    kTitle.innerText = "👑 晉級者全單循環大決戰";
+                    let html = `<div class="flex flex-col gap-6">`;
+                    let rrRows = ps.players.map((p, pIdx) => `
+                        <tr>
+                            <td class="font-black text-gray-600">${p.group}組</td>
+                            <td class="font-black text-black">${p.name}</td>
+                            <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'w', -1)">-</button>`:''}<span>${p.w}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'w', 1)">+</button>`:''}</div></td>
+                            <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'l', -1)">-</button>`:''}<span>${p.l}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'l', 1)">+</button>`:''}</div></td>
+                            <td><div class="flex items-center justify-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'scoreDiff', -1)">-</button>`:''}<span>${p.scoreDiff > 0 ? '+' + p.scoreDiff : p.scoreDiff}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_p', 0, ${pIdx}, 'scoreDiff', 1)">+</button>`:''}</div></td>
+                            <td>${isAdmin ? `<input type="text" class="w-12 text-center bg-white border border-black font-black text-red-600 text-sm rounded" value="${p.rank}" onchange="updateScoreState('frr_r', 0, ${pIdx}, 'rank', this.value)">` : `<span class="font-black text-red-600">${p.rank}</span>`}</td>
+                        </tr>
+                    `).join('');
+
+                    html += `<div class="bg-white p-4 border-2 border-black rounded-xl overflow-x-auto"><table class="text-sm w-full text-center"><tr><th>預賽來源</th><th>選手</th><th>勝</th><th>敗</th><th>得失分</th><th>總名次</th></tr>${rrRows}</table></div>`;
+
+                    html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4">`;
+                    ps.matches.forEach((m, mIdx) => {
+                        html += `
+                            <div class="matchup border-2 border-black p-3 bg-white rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <div class="font-black text-xs text-gray-500 mb-2 flex justify-between"><span>${m.title}</span>${isAdmin ? `<button class="border border-black bg-amber-400 text-black px-1.5 py-0.5 text-[10px] font-bold rounded" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'frr', mIdx:${mIdx}})">⚔️ 計分</button>` : ''}</div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span class="font-black text-sm ${m.s1 > m.s2 ? 'text-red-600 font-bold':''}">${m.p1}</span>
+                                    <div class="flex items-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's1', -1)">-</button>`:''}<span class="score-box text-xs font-bold">${m.s1}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's1', 1)">+</button>`:''}</div>
+                                </div>
+                                <div class="flex justify-between items-center py-1 border-t border-gray-200">
+                                    <span class="font-black text-sm ${m.s2 > m.s1 ? 'text-red-600 font-bold':''}">${m.p2}</span>
+                                    <div class="flex items-center gap-1">${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's2', -1)">-</button>`:''}<span class="score-box text-xs font-bold">${m.s2}</span>${isAdmin ? `<button class="score-ctrl text-xs px-1 border" onclick="updateScoreState('frr_m', 0, ${mIdx}, 's2', 1)">+</button>`:''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div></div>`;
+                    document.getElementById('knockout-container').innerHTML = html;
+                    document.getElementById('knockout-container').style.gridTemplateColumns = '1fr';
+                }
+            } else if (s.knockout) {
                 kSection.classList.remove('hidden'); document.getElementById('knockout-container').style.gridTemplateColumns = `repeat(auto-fit, minmax(240px, 1fr))`;
                 let kHtml = s.knockout.map((col, colIdx) => {
                     let matchesHtml = col.matches.map((m, mIdx) => {
@@ -1420,6 +1653,18 @@
             if (s.format === 'group' && s.groups) {
                 for (let g of s.groups) { for (let m of g.matches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = `${g.name}組 預賽`; break; } } if(nextMatch) break; }
             }
+            if (!nextMatch && s.playoffState) {
+                const ps = s.playoffState;
+                if (ps.pkMatches) {
+                    for (let m of ps.pkMatches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = m.title; break; } }
+                }
+                if (!nextMatch && ps.finalRRMatches) {
+                    for (let m of ps.finalRRMatches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = m.title; break; } }
+                }
+                if (!nextMatch && ps.matches) {
+                    for (let m of ps.matches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = m.title; break; } }
+                }
+            }
             if (!nextMatch && s.knockout) {
                 for (let col of s.knockout) { for (let m of col.matches) { if ((m.p1 === pName || m.p2 === pName) && m.s1 === 0 && m.s2 === 0) { nextMatch = m; matchType = m.title; break; } } if(nextMatch) break; }
             }
@@ -1447,6 +1692,54 @@
                 advanceWinner(s, idx1, idx2, winner, loser);
                 checkAndProcessByes(s);
             }
+            else if (type === 'pk_m') {
+                if (s.playoffState && s.playoffState.pkMatches) {
+                    s.playoffState.pkMatches[idx2][key] = Math.max(0, s.playoffState.pkMatches[idx2][key] + val);
+                    
+                    // 檢查 3 場 PK 賽是否全數打完
+                    let completed = s.playoffState.pkMatches.every(m => m.s1 !== m.s2 && (m.s1 > 0 || m.s2 > 0));
+                    if (completed) {
+                        let winners = s.playoffState.pkMatches.map(m => m.s1 > m.s2 ? m.p1 : m.p2);
+                        s.playoffState.step = 2;
+                        let w1 = winners[0], w2 = winners[1], w3 = winners[2];
+                        s.playoffState.finalRRMatches = [
+                            { id: 'frr_1', title: '🏆 3強決賽 M1', p1: w1, p2: w2, s1: 0, s2: 0 },
+                            { id: 'frr_2', title: '🏆 3強決賽 M2', p1: w2, p2: w3, s1: 0, s2: 0 },
+                            { id: 'frr_3', title: '🏆 3強決賽 M3', p1: w3, p2: w1, s1: 0, s2: 0 }
+                        ];
+                        s.playoffState.finalRRTable = [
+                            { name: w1, w: 0, l: 0, scoreDiff: 0, rank: '-' },
+                            { name: w2, w: 0, l: 0, scoreDiff: 0, rank: '-' },
+                            { name: w3, w: 0, l: 0, scoreDiff: 0, rank: '-' }
+                        ];
+                    }
+                }
+            }
+            else if (type === 'frr_m') {
+                if (s.playoffState) {
+                    let matchArray = s.playoffState.finalRRMatches || s.playoffState.matches;
+                    let tableArray = s.playoffState.finalRRTable || s.playoffState.players;
+                    if (matchArray && matchArray[idx2]) {
+                        matchArray[idx2][key] = Math.max(0, matchArray[idx2][key] + val);
+                        recalculateRRStandings(tableArray, matchArray);
+                    }
+                }
+            }
+            else if (type === 'frr_p') {
+                if (s.playoffState) {
+                    let tableArray = s.playoffState.finalRRTable || s.playoffState.players;
+                    if (tableArray && tableArray[idx2]) {
+                        if (key === 'scoreDiff') tableArray[idx2][key] += val;
+                        else tableArray[idx2][key] = Math.max(0, tableArray[idx2][key] + val);
+                    }
+                }
+            }
+            else if (type === 'frr_r') {
+                if (s.playoffState) {
+                    let tableArray = s.playoffState.finalRRTable || s.playoffState.players;
+                    if (tableArray && tableArray[idx2]) tableArray[idx2][key] = val;
+                }
+            }
             else if (type === 'g_p') {
                 if(key=='scoreDiff') s.groups[idx1].players[idx2][key] += val;
                 else s.groups[idx1].players[idx2][key] = Math.max(0, s.groups[idx1].players[idx2][key] + val);
@@ -1455,6 +1748,28 @@
             else if (type === 'k_n') s.knockout[idx1].matches[idx2][key] = val;
             
             saveState(s);
+        }
+
+        function recalculateRRStandings(tableArray, matchArray) {
+            tableArray.forEach(p => { p.w = 0; p.l = 0; p.scoreDiff = 0; p.rank = '-'; });
+            matchArray.forEach(m => {
+                if (m.s1 === 0 && m.s2 === 0) return;
+                let p1Obj = tableArray.find(x => x.name === m.p1);
+                let p2Obj = tableArray.find(x => x.name === m.p2);
+                if (p1Obj && p2Obj) {
+                    p1Obj.scoreDiff += (m.s1 - m.s2); p2Obj.scoreDiff += (m.s2 - m.s1);
+                    if (m.s1 > m.s2) { p1Obj.w += 1; p2Obj.l += 1; }
+                    else if (m.s2 > m.s1) { p2Obj.w += 1; p1Obj.l += 1; }
+                }
+            });
+            let rankSort = [...tableArray].sort((a, b) => {
+                if (b.w !== a.w) return b.w - a.w;
+                return b.scoreDiff - a.scoreDiff;
+            });
+            tableArray.forEach(p => {
+                let finalIdx = rankSort.findIndex(x => x.name === p.name);
+                p.rank = finalIdx + 1;
+            });
         }
 
         function recalculateGroupStandings(s, gIdx) {
@@ -1494,7 +1809,6 @@
             void scoreEl.offsetWidth; 
             scoreEl.classList.add('scale-105');
 
-            // Flash the player card green on point increase
             if (pts > 0) {
                 let cardEl = scoreEl.closest('.sb-player-card');
                 if (cardEl) {
@@ -1520,7 +1834,6 @@
             sbGameOver = false;
         }
 
-        // 修改點：手動儲存目前計分並返回主賽事（非強迫達到最高分數）
         window.submitAndCloseSbVictory = async function() {
             if (currentLoadedMatchContext && window.globalState) {
                 let s = JSON.parse(JSON.stringify(window.globalState));
@@ -1543,6 +1856,37 @@
                     if (winner !== '') {
                         advanceWinner(s, ctx.cIdx, ctx.mIdx, winner, loser);
                         checkAndProcessByes(s);
+                    }
+                } else if (ctx.type === 'pk') {
+                    if (s.playoffState && s.playoffState.pkMatches) {
+                        let targetMatch = s.playoffState.pkMatches[ctx.mIdx];
+                        targetMatch.s1 = sbScores[1]; targetMatch.s2 = sbScores[2];
+                        let completed = s.playoffState.pkMatches.every(m => m.s1 !== m.s2 && (m.s1 > 0 || m.s2 > 0));
+                        if (completed) {
+                            let winners = s.playoffState.pkMatches.map(m => m.s1 > m.s2 ? m.p1 : m.p2);
+                            s.playoffState.step = 2;
+                            let w1 = winners[0], w2 = winners[1], w3 = winners[2];
+                            s.playoffState.finalRRMatches = [
+                                { id: 'frr_1', title: '🏆 3強決賽 M1', p1: w1, p2: w2, s1: 0, s2: 0 },
+                                { id: 'frr_2', title: '🏆 3強決賽 M2', p1: w2, p2: w3, s1: 0, s2: 0 },
+                                { id: 'frr_3', title: '🏆 3強決賽 M3', p1: w3, p2: w1, s1: 0, s2: 0 }
+                            ];
+                            s.playoffState.finalRRTable = [
+                                { name: w1, w: 0, l: 0, scoreDiff: 0, rank: '-' },
+                                { name: w2, w: 0, l: 0, scoreDiff: 0, rank: '-' },
+                                { name: w3, w: 0, l: 0, scoreDiff: 0, rank: '-' }
+                            ];
+                        }
+                    }
+                } else if (ctx.type === 'frr') {
+                    if (s.playoffState) {
+                        let matchArray = s.playoffState.finalRRMatches || s.playoffState.matches;
+                        let tableArray = s.playoffState.finalRRTable || s.playoffState.players;
+                        if (matchArray && matchArray[ctx.mIdx]) {
+                            matchArray[ctx.mIdx].s1 = sbScores[1];
+                            matchArray[ctx.mIdx].s2 = sbScores[2];
+                            recalculateRRStandings(tableArray, matchArray);
+                        }
                     }
                 }
                 await setDoc(window.docRef, s);
