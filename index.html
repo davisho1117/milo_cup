@@ -896,7 +896,9 @@
             if (!select) return;
             if (window.globalState && window.globalState.players) {
                 const realPlayers = window.globalState.players.filter(p => p !== '輪空');
-                select.innerHTML = '<option value="">-- 請選擇 --</option>' + realPlayers.map(p => `<option value="${p}">${p}</option>`).join(''); select.disabled = false;
+                const sortedPlayers = [...realPlayers].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+                select.innerHTML = '<option value="">-- 請選擇 --</option>' + sortedPlayers.map(p => `<option value="${p}">${p}</option>`).join(''); 
+                select.disabled = false;
             } else { select.innerHTML = '<option value="">-- 賽事尚未建立 --</option>'; select.disabled = true; }
         }
 
