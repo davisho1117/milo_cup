@@ -107,6 +107,17 @@
             color: var(--ch-red); 
             font-weight: 900;
         }
+        .score-box-sm { 
+            display: inline-block; 
+            min-width: 25px; height: 26px; 
+            line-height: 22px; text-align: center; 
+            background: var(--ch-white); 
+            border: 2px solid var(--ch-black); 
+            border-radius: 6px; 
+            color: var(--ch-red); 
+            font-weight: 900;
+            font-size: 0.8rem;
+        }
 
         .matchup { border: 3px solid var(--ch-black); border-radius: 12px; background: var(--ch-white); overflow: hidden; box-shadow: 3px 3px 0px 0px var(--ch-black); }
         .matchup-title { text-align: center; padding: 4px; background: var(--ch-yellow); color: var(--ch-black); border-bottom: 3px solid var(--ch-black); font-size: 0.85rem; }
@@ -1459,32 +1470,32 @@
                     `).join('');
 
                     let matchesHtml = g.matches.map((m, mIdx) => `
-                        <div class="match-row p-2 flex items-center justify-between">
-                            <div class="flex-1 text-right truncate pr-2 ${m.p1===window.userRole ? 'text-red-600 font-black':''}">${m.p1}</div>
-                            <div class="flex items-center gap-1 sm:gap-2">
+                        <div class="match-row p-1.5 flex items-center justify-between gap-1">
+                            <div class="flex-1 text-right text-xs sm:text-sm font-black truncate leading-tight pr-1 ${m.p1===window.userRole ? 'text-red-600':''}" title="${m.p1}">${m.p1}</div>
+                            <div class="flex items-center gap-0.5 sm:gap-1.5 shrink-0">
                                 ${isAdmin ? `
-                                <div class="flex items-center gap-1">
-                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's1', -1)">-</button>
-                                    <span class="score-box">${m.s1}</span>
-                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's1', 1)">+</button>
+                                <div class="flex items-center gap-0.5">
+                                    <button class="score-ctrl text-[11px] h-6 w-5 border border-black bg-gray-100 hover:bg-gray-200 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's1', -1)">-</button>
+                                    <span class="score-box-sm">${m.s1}</span>
+                                    <button class="score-ctrl text-[11px] h-6 w-5 border border-black bg-gray-100 hover:bg-gray-200 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's1', 1)">+</button>
                                 </div>
-                                ` : `<span class="score-box">${m.s1}</span>`}
+                                ` : `<span class="score-box-sm">${m.s1}</span>`}
                                 
-                                ${isAdmin ? `<button class="action-btn border border-black rounded bg-amber-400 px-2 py-0.5 text-xs font-bold shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:shadow-[0px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'group', gIdx:${idx}, mIdx:${mIdx}})">⚔️</button>` : `<span class="text-gray-500 text-xs mx-1">VS</span>`}
+                                ${isAdmin ? `<button class="action-btn border border-black rounded bg-amber-400 px-1 py-0.5 text-[11px] font-bold shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5 hover:bg-amber-300" onclick="loadMatchToScoreboard('${m.p1}', '${m.p2}', {type:'group', gIdx:${idx}, mIdx:${mIdx}})">⚔️</button>` : `<span class="text-gray-500 text-xs mx-0.5">VS</span>`}
                                 
                                 ${isAdmin ? `
-                                <div class="flex items-center gap-1">
-                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's2', -1)">-</button>
-                                    <span class="score-box">${m.s2}</span>
-                                    <button class="score-ctrl text-xs bg-gray-100 hover:bg-gray-200 border px-1.5 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)]" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's2', 1)">+</button>
+                                <div class="flex items-center gap-0.5">
+                                    <button class="score-ctrl text-[11px] h-6 w-5 border border-black bg-gray-100 hover:bg-gray-200 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's2', -1)">-</button>
+                                    <span class="score-box-sm">${m.s2}</span>
+                                    <button class="score-ctrl text-[11px] h-6 w-5 border border-black bg-gray-100 hover:bg-gray-200 rounded font-black text-black shadow-[1px_1px_0px_rgba(0,0,0,1)] active:translate-y-0.5" onclick="updateScoreState('g_m', ${idx}, ${mIdx}, 's2', 1)">+</button>
                                 </div>
-                                ` : `<span class="score-box">${m.s2}</span>`}
+                                ` : `<span class="score-box-sm">${m.s2}</span>`}
                             </div>
-                            <div class="flex-1 text-left truncate pl-2 ${m.p2===window.userRole ? 'text-red-600 font-black':''}">${m.p2}</div>
+                            <div class="flex-1 text-left text-xs sm:text-sm font-black truncate leading-tight pl-1 ${m.p2===window.userRole ? 'text-red-600':''}" title="${m.p2}">${m.p2}</div>
                         </div>
                     `).join('');
 
-                    gHtml += `<div class="ch-box p-4 rounded-2xl flex-1 min-w-[300px] max-w-[500px]"><h2 class="flex justify-between items-center text-xl font-black border-b-4 pb-2 mb-3" style="color:${c.main}; border-color:${c.main};"><span>${g.name}組 預賽</span><span class="text-xs border border-black px-2 py-0.5 rounded-lg bg-white text-gray-700">${g.players.length}人</span></h2><div class="overflow-x-auto mb-4"><table class="text-sm"><tr><th>代號</th><th>選手</th><th>勝</th><th>敗</th><th>得失</th><th>名次</th></tr>${tableRows}</table></div><div class="text-center text-gray-500 text-xs mb-2 border-b border-dashed border-gray-400 pb-1">⚔️ 對戰紀錄</div>${matchesHtml}</div>`;
+                    gHtml += `<div class="ch-box p-3 sm:p-4 rounded-2xl flex-1 min-w-[280px] max-w-[500px]"><h2 class="flex justify-between items-center text-xl font-black border-b-4 pb-2 mb-3" style="color:${c.main}; border-color:${c.main};"><span>${g.name}組 預賽</span><span class="text-xs border border-black px-2 py-0.5 rounded-lg bg-white text-gray-700">${g.players.length}人</span></h2><div class="overflow-x-auto mb-4"><table class="text-sm"><tr><th>代號</th><th>選手</th><th>勝</th><th>敗</th><th>得失</th><th>名次</th></tr>${tableRows}</table></div><div class="text-center text-gray-500 text-xs mb-2 border-b border-dashed border-gray-400 pb-1">⚔️ 對戰紀錄</div>${matchesHtml}</div>`;
                 });
                 gContainer.innerHTML = gHtml;
             }
